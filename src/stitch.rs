@@ -4,8 +4,8 @@ use std::collections::HashMap;
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Hash)]
 pub struct HalfStitch {
     // The start is the cell of the stitch, from the bottom left corner.
-    start: GridCell,
-    facing_right: bool,
+    pub start: GridCell,
+    pub facing_right: bool,
 }
 
 impl HalfStitch {

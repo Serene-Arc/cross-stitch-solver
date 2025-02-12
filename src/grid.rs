@@ -2,7 +2,7 @@ use crate::stitch::HalfStitch;
 use crate::ProgramState;
 use iced::event::Status;
 use iced::mouse::Cursor;
-use iced::widget::canvas::{Cache, Event, Frame, Geometry, Path, Text};
+use iced::widget::canvas::{Cache, Event, Frame, Geometry, Path, Stroke, Style, Text};
 use iced::widget::{canvas, Canvas};
 use iced::{
     alignment, mouse, Color, Element, Fill, Point, Rectangle, Renderer, Size, Theme, Vector,
@@ -32,7 +32,7 @@ impl Default for GridState {
             grid_cache: Cache::default(),
             cell_cache: Cache::default(),
             translation: Default::default(),
-            scaling: 2.0,
+            scaling: 4.0,
             program_state: Default::default(),
         }
     }
@@ -40,7 +40,7 @@ impl Default for GridState {
 
 impl GridState {
     const MIN_SCALING: f32 = 0.1;
-    const MAX_SCALING: f32 = 2.0;
+    const MAX_SCALING: f32 = 4.0;
 
     /// Determine what part of the grid should be visible.
     fn visible_region(&self, size: Size) -> Region {
@@ -244,6 +244,46 @@ impl canvas::Program<Message> for GridState {
                         }
                     }
                 }
+                let mut alpha = 1.0;
+                for stitch in stitches.iter().rev() {
+                    let line;
+                    if stitch.facing_right {
+                        line = Path::line(
+                            Point {
+                                x: stitch.start.x as f32,
+                                y: stitch.start.y as f32,
+                            },
+                            Point {
+                                x: (stitch.start.x + 1) as f32,
+                                y: (stitch.start.y + 1) as f32,
+                            },
+                        );
+                    } else {
+                        line = Path::line(
+                            Point {
+                                x: (stitch.start.x) as f32,
+                                y: stitch.start.y as f32,
+                            },
+                            Point {
+                                x: (stitch.start.x - 1) as f32,
+                                y: (stitch.start.y + 1) as f32,
+                            },
+                        );
+                    }
+                    let line_stroke = Stroke {
+                        width: 5.0,
+                        style: Style::Solid(Color {
+                            a: alpha,
+                            ..Color::BLACK
+                        }),
+                        ..Default::default()
+                    };
+                    frame.stroke(&line, line_stroke);
+                    if alpha > 0.4 {
+                        let reduction = if alpha < 0.95 { 0.05 } else { 0.01 };
+                        alpha -= reduction;
+                    }
+                }
             });
         });
         let cell_highlight = {
@@ -368,6 +408,15 @@ impl GridCell {
 
     pub fn euclidean_distance(&self, other: &Self) -> f64 {
         (((other.x - self.x) as f64).powi(2) + ((other.y - self.y) as f64).powi(2)).sqrt()
+    }
+}
+
+impl Into<Point> for GridCell {
+    fn into(self) -> Point {
+        Point {
+            x: self.x as f32,
+            y: self.y as f32,
+        }
     }
 }
 
