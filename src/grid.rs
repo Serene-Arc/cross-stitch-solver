@@ -145,8 +145,6 @@ impl canvas::Program<Message> for GridState {
                 }
                 mouse::Event::CursorMoved { .. } => {
                     let message = match *interaction {
-                        GridInteraction::CellSelection => Some(Message::Select(cell)),
-                        GridInteraction::CellErasure => Some(Message::Unselect(cell)),
                         GridInteraction::Panning {
                             translation,
                             origin,
@@ -461,8 +459,6 @@ impl Region {
 pub enum GridInteraction {
     #[default]
     None,
-    CellSelection,
-    CellErasure,
     Panning {
         translation: Vector,
         origin: Point,
