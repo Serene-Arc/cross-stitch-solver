@@ -150,9 +150,11 @@ mod test {
     #[test]
     fn test_convert_grid_cells_full_then_half() {
         let result = HalfStitch::convert_grid_cells(
-            [GridCell { x: 0, y: 0 },
+            [
                 GridCell { x: 0, y: 0 },
-                GridCell { x: 1, y: 0 }]
+                GridCell { x: 0, y: 0 },
+                GridCell { x: 1, y: 0 },
+            ]
             .iter(),
         );
         assert_eq!(
@@ -193,9 +195,11 @@ mod test {
     /// The distance of three half-stitches in sequence from left to right.
     #[test]
     fn test_stitch_distance_three_consecutive_half_stitches() {
-        let stitches = [GridCell { x: 0, y: 0 },
+        let stitches = [
+            GridCell { x: 0, y: 0 },
             GridCell { x: 1, y: 0 },
-            GridCell { x: 2, y: 0 }];
+            GridCell { x: 2, y: 0 },
+        ];
         let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.0);
     }
@@ -203,9 +207,11 @@ mod test {
     /// The distance of one full stitch then beginning the next half-stitch to the right.
     #[test]
     fn test_stitch_distance_full_then_half() {
-        let stitches = [GridCell { x: 0, y: 0 },
+        let stitches = [
             GridCell { x: 0, y: 0 },
-            GridCell { x: 1, y: 0 }];
+            GridCell { x: 0, y: 0 },
+            GridCell { x: 1, y: 0 },
+        ];
         let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.414);
     }
@@ -213,9 +219,11 @@ mod test {
     /// The distance of one full stitch then beginning the next half-stitch to the up and right
     #[test]
     fn test_stitch_distance_full_then_half_up() {
-        let stitches = [GridCell { x: 0, y: 0 },
+        let stitches = [
             GridCell { x: 0, y: 0 },
-            GridCell { x: 1, y: 1 }];
+            GridCell { x: 0, y: 0 },
+            GridCell { x: 1, y: 1 },
+        ];
         let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.0);
     }

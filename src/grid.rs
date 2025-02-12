@@ -32,7 +32,7 @@ impl Default for GridState {
             grid_cache: Cache::default(),
             cell_cache: Cache::default(),
             translation: Default::default(),
-            scaling: 4.0,
+            scaling: 2.0,
             program_state: Default::default(),
         }
     }
