@@ -117,7 +117,7 @@ mod test {
 
     #[test]
     fn test_convert_grid_cells_single_cell() {
-        let result = HalfStitch::convert_grid_cells(vec![GridCell { x: 0, y: 0 }].iter());
+        let result = HalfStitch::convert_grid_cells([GridCell { x: 0, y: 0 }].iter());
         assert_eq!(
             result[0],
             HalfStitch {
@@ -130,7 +130,7 @@ mod test {
     #[test]
     fn test_convert_grid_cells_doubled_cells() {
         let result = HalfStitch::convert_grid_cells(
-            vec![GridCell { x: 0, y: 0 }, GridCell { x: 0, y: 0 }].iter(),
+            [GridCell { x: 0, y: 0 }, GridCell { x: 0, y: 0 }].iter(),
         );
         assert_eq!(
             result,
@@ -150,11 +150,9 @@ mod test {
     #[test]
     fn test_convert_grid_cells_full_then_half() {
         let result = HalfStitch::convert_grid_cells(
-            vec![
+            [GridCell { x: 0, y: 0 },
                 GridCell { x: 0, y: 0 },
-                GridCell { x: 0, y: 0 },
-                GridCell { x: 1, y: 0 },
-            ]
+                GridCell { x: 1, y: 0 }]
             .iter(),
         );
         assert_eq!(
@@ -179,68 +177,62 @@ mod test {
     /// The distance of a single full stitch on a single full cell.
     #[test]
     fn test_stitch_distance_one_full_stitch() {
-        let stitches = vec![GridCell { x: 0, y: 0 }, GridCell { x: 0, y: 0 }];
-        let result = HalfStitch::_calculate_cost(&*HalfStitch::convert_grid_cells(stitches.iter()));
+        let stitches = [GridCell { x: 0, y: 0 }, GridCell { x: 0, y: 0 }];
+        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 1.0);
     }
 
     /// The distance of two half-stitches in sequence from left to right.
     #[test]
     fn test_stitch_distance_two_consecutive_half_stitches() {
-        let stitches = vec![GridCell { x: 0, y: 0 }, GridCell { x: 1, y: 0 }];
-        let result = HalfStitch::_calculate_cost(&*HalfStitch::convert_grid_cells(stitches.iter()));
+        let stitches = [GridCell { x: 0, y: 0 }, GridCell { x: 1, y: 0 }];
+        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 1.0);
     }
 
     /// The distance of three half-stitches in sequence from left to right.
     #[test]
     fn test_stitch_distance_three_consecutive_half_stitches() {
-        let stitches = vec![
-            GridCell { x: 0, y: 0 },
+        let stitches = [GridCell { x: 0, y: 0 },
             GridCell { x: 1, y: 0 },
-            GridCell { x: 2, y: 0 },
-        ];
-        let result = HalfStitch::_calculate_cost(&*HalfStitch::convert_grid_cells(stitches.iter()));
+            GridCell { x: 2, y: 0 }];
+        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.0);
     }
 
     /// The distance of one full stitch then beginning the next half-stitch to the right.
     #[test]
     fn test_stitch_distance_full_then_half() {
-        let stitches = vec![
+        let stitches = [GridCell { x: 0, y: 0 },
             GridCell { x: 0, y: 0 },
-            GridCell { x: 0, y: 0 },
-            GridCell { x: 1, y: 0 },
-        ];
-        let result = HalfStitch::_calculate_cost(&*HalfStitch::convert_grid_cells(stitches.iter()));
+            GridCell { x: 1, y: 0 }];
+        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.414);
     }
 
     /// The distance of one full stitch then beginning the next half-stitch to the up and right
     #[test]
     fn test_stitch_distance_full_then_half_up() {
-        let stitches = vec![
+        let stitches = [GridCell { x: 0, y: 0 },
             GridCell { x: 0, y: 0 },
-            GridCell { x: 0, y: 0 },
-            GridCell { x: 1, y: 1 },
-        ];
-        let result = HalfStitch::_calculate_cost(&*HalfStitch::convert_grid_cells(stitches.iter()));
+            GridCell { x: 1, y: 1 }];
+        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.0);
     }
 
     /// The distance of two half-stitches in a column.
     #[test]
     fn test_stitch_distance_two_half_stitches_column_up() {
-        let stitches = vec![GridCell { x: 0, y: 0 }, GridCell { x: 0, y: 1 }];
-        let result = HalfStitch::_calculate_cost(&*HalfStitch::convert_grid_cells(stitches.iter()));
+        let stitches = [GridCell { x: 0, y: 0 }, GridCell { x: 0, y: 1 }];
+        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 1.0);
     }
 
     /// The distance of two half-stitches in a column.
     #[test]
     fn test_stitch_distance_two_half_stitches_column_down() {
-        let stitches = vec![GridCell { x: 0, y: 0 }, GridCell { x: 0, y: -1 }];
-        let result = HalfStitch::_calculate_cost(&*HalfStitch::convert_grid_cells(stitches.iter()));
+        let stitches = [GridCell { x: 0, y: 0 }, GridCell { x: 0, y: -1 }];
+        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.236);
     }
 }

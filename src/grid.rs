@@ -244,9 +244,8 @@ impl canvas::Program<Message> for GridState {
                 }
                 let mut alpha = 1.0;
                 for stitch in stitches.iter().rev() {
-                    let line;
-                    if stitch.facing_right {
-                        line = Path::line(
+                    let line = if stitch.facing_right {
+                        Path::line(
                             Point {
                                 x: stitch.start.x as f32,
                                 y: stitch.start.y as f32,
@@ -255,9 +254,9 @@ impl canvas::Program<Message> for GridState {
                                 x: (stitch.start.x + 1) as f32,
                                 y: (stitch.start.y + 1) as f32,
                             },
-                        );
+                        )
                     } else {
-                        line = Path::line(
+                        Path::line(
                             Point {
                                 x: (stitch.start.x) as f32,
                                 y: stitch.start.y as f32,
@@ -266,8 +265,8 @@ impl canvas::Program<Message> for GridState {
                                 x: (stitch.start.x - 1) as f32,
                                 y: (stitch.start.y + 1) as f32,
                             },
-                        );
-                    }
+                        )
+                    };
                     let line_stroke = Stroke {
                         width: 5.0,
                         style: Style::Solid(Color {
@@ -409,11 +408,11 @@ impl GridCell {
     }
 }
 
-impl Into<Point> for GridCell {
-    fn into(self) -> Point {
+impl From<GridCell> for Point {
+    fn from(val: GridCell) -> Self {
         Point {
-            x: self.x as f32,
-            y: self.y as f32,
+            x: val.x as f32,
+            y: val.y as f32,
         }
     }
 }
