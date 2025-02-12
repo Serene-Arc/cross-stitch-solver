@@ -408,16 +408,14 @@ impl Region {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum GridInteraction {
+    #[default]
     None,
     CellSelection,
     CellErasure,
-    Panning { translation: Vector, origin: Point },
-}
-
-impl Default for GridInteraction {
-    fn default() -> Self {
-        GridInteraction::None
-    }
+    Panning {
+        translation: Vector,
+        origin: Point,
+    },
 }
