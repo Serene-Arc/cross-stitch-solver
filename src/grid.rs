@@ -202,9 +202,9 @@ impl canvas::Program<Message> for GridState {
 
     fn draw(
         &self,
-        state: &Self::State,
+        _state: &Self::State,
         renderer: &Renderer,
-        theme: &Theme,
+        _theme: &Theme,
         bounds: Rectangle,
         cursor: Cursor,
     ) -> Vec<Geometry<Renderer>> {
