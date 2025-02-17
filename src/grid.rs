@@ -5,7 +5,7 @@ use iced::mouse::Cursor;
 use iced::widget::canvas::{Cache, Event, Frame, Geometry, Path, Stroke, Style, Text};
 use iced::widget::{canvas, Canvas};
 use iced::{
-    alignment, mouse, Color, Element, Fill, Point, Rectangle, Renderer, Size, Theme, Vector,
+    alignment, mouse, Color, Element, Fill, Font, Point, Rectangle, Renderer, Size, Theme, Vector,
 };
 use std::ops::RangeInclusive;
 
@@ -322,6 +322,7 @@ impl canvas::Program<Message> for GridState {
                 position: Point::new(frame.width(), frame.height()),
                 horizontal_alignment: alignment::Horizontal::Right,
                 vertical_alignment: alignment::Vertical::Bottom,
+                font: Font::MONOSPACE,
                 ..Text::default()
             };
             if let Some(cell) = hovered_grid_cell {
