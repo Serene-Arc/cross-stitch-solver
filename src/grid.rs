@@ -327,7 +327,7 @@ impl canvas::Program<Message> for GridState {
             };
             if let Some(cell) = hovered_grid_cell {
                 frame.fill_text(Text {
-                    content: format!("({}, {})", cell.x, -cell.y),
+                    content: format!("({}, {})", cell.x, cell.y),
                     position: text.position - Vector::new(0.0, 16.0),
                     ..text
                 });
