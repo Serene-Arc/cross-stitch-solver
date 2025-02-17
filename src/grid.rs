@@ -326,8 +326,12 @@ impl canvas::Program<Message> for GridState {
                 ..Text::default()
             };
             if let Some(cell) = hovered_grid_cell {
+                let cursor = cursor.position_in(bounds).unwrap();
                 frame.fill_text(Text {
-                    content: format!("({}, {})", cell.x, cell.y),
+                    content: format!(
+                        "({}, {}) grid, ({:07.2}, {:07.2})",
+                        cell.x, cell.y, cursor.x, cursor.y
+                    ),
                     position: text.position - Vector::new(0.0, 16.0),
                     ..text
                 });
