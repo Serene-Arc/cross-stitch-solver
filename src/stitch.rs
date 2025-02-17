@@ -1,4 +1,5 @@
 use crate::grid::GridCell;
+use crate::symbolic_sum::SymbolicSum;
 use std::collections::HashMap;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Hash)]
@@ -47,7 +48,24 @@ impl HalfStitch {
         out
     }
 
-    pub fn check_valid_sequence(stitches: &[HalfStitch]) -> Result<f64, (GridCell, GridCell)> {
+    pub fn check_valid_sequence_float(
+        stitches: &[HalfStitch],
+    ) -> Result<String, (GridCell, GridCell)> {
+        Self::_check_valid_sequence(stitches)?;
+        Ok(format!(
+            "{:.4}",
+            HalfStitch::_calculate_cost_float(stitches)
+        ))
+    }
+
+    pub fn check_valid_sequence_symbolic(
+        stitches: &[HalfStitch],
+    ) -> Result<String, (GridCell, GridCell)> {
+        Self::_check_valid_sequence(stitches)?;
+        Ok(HalfStitch::_calculate_cost_symbolic(stitches).to_string())
+    }
+
+    fn _check_valid_sequence(stitches: &[HalfStitch]) -> Result<(), (GridCell, GridCell)> {
         let mut last_stitch: Option<&HalfStitch> = None;
         for stitch in stitches {
             match last_stitch {
@@ -60,13 +78,14 @@ impl HalfStitch {
             }
             last_stitch = Some(stitch);
         }
-        Ok(HalfStitch::_calculate_cost(stitches))
+        Ok(())
     }
 
     /// Calculate the total cost of the sequence of half-stitches.
     /// This is in units, where one unit is the distance between cells.
     /// It does not include the length of the actual stitch, just distance on the 'back'.
-    fn _calculate_cost(stitches: &[HalfStitch]) -> f64 {
+    /// Calculated as a float.
+    fn _calculate_cost_float(stitches: &[HalfStitch]) -> f64 {
         let mut total = 0.0;
         for stitch in stitches.windows(2) {
             let first_point = stitch[0].get_end_location();
@@ -74,6 +93,14 @@ impl HalfStitch {
             total += first_point.euclidean_distance(&second_point);
         }
         total
+    }
+
+    fn _calculate_cost_symbolic(stitches: &[HalfStitch]) -> SymbolicSum {
+        let mut distance = SymbolicSum::default();
+        for stitch in stitches.windows(2) {
+            distance.add_distance(stitch[0].get_end_location(), stitch[1].start)
+        }
+        distance
     }
 }
 
@@ -180,7 +207,8 @@ mod test {
     #[test]
     fn test_stitch_distance_one_full_stitch() {
         let stitches = [GridCell { x: 0, y: 0 }, GridCell { x: 0, y: 0 }];
-        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
+        let result =
+            HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 1.0);
     }
 
@@ -188,7 +216,8 @@ mod test {
     #[test]
     fn test_stitch_distance_two_consecutive_half_stitches() {
         let stitches = [GridCell { x: 0, y: 0 }, GridCell { x: 1, y: 0 }];
-        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
+        let result =
+            HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 1.0);
     }
 
@@ -200,7 +229,8 @@ mod test {
             GridCell { x: 1, y: 0 },
             GridCell { x: 2, y: 0 },
         ];
-        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
+        let result =
+            HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.0);
     }
 
@@ -212,7 +242,8 @@ mod test {
             GridCell { x: 0, y: 0 },
             GridCell { x: 1, y: 0 },
         ];
-        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
+        let result =
+            HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.414);
     }
 
@@ -224,7 +255,8 @@ mod test {
             GridCell { x: 0, y: 0 },
             GridCell { x: 1, y: 1 },
         ];
-        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
+        let result =
+            HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.0);
     }
 
@@ -232,7 +264,8 @@ mod test {
     #[test]
     fn test_stitch_distance_two_half_stitches_column_up() {
         let stitches = [GridCell { x: 0, y: 0 }, GridCell { x: 0, y: 1 }];
-        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
+        let result =
+            HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 1.0);
     }
 
@@ -240,7 +273,8 @@ mod test {
     #[test]
     fn test_stitch_distance_two_half_stitches_column_down() {
         let stitches = [GridCell { x: 0, y: 0 }, GridCell { x: 0, y: -1 }];
-        let result = HalfStitch::_calculate_cost(&HalfStitch::convert_grid_cells(stitches.iter()));
+        let result =
+            HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(stitches.iter()));
         assert_eq!(_round_float(result), 2.236);
     }
 }

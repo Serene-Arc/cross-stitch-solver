@@ -24,6 +24,7 @@ pub struct GridState {
     translation: Vector,
     scaling: f32,
     pub program_state: ProgramState,
+    pub precise_cost: bool,
 }
 
 impl Default for GridState {
@@ -34,6 +35,7 @@ impl Default for GridState {
             translation: Default::default(),
             scaling: 2.0,
             program_state: Default::default(),
+            precise_cost: false,
         }
     }
 }
@@ -208,7 +210,11 @@ impl canvas::Program<Message> for GridState {
     ) -> Vec<Geometry<Renderer>> {
         let centre = Vector::new(bounds.width / 2.0, bounds.height / 2.0);
         let stitches = HalfStitch::convert_grid_cells(self.program_state.selected_cells.iter());
-        let valid_sequence = HalfStitch::check_valid_sequence(&stitches);
+        let valid_sequence = if self.precise_cost {
+            HalfStitch::check_valid_sequence_symbolic(&stitches)
+        } else {
+            HalfStitch::check_valid_sequence_float(&stitches)
+        };
 
         let selected_cells = self.cell_cache.draw(renderer, bounds.size(), |frame| {
             let background = Path::rectangle(Point::ORIGIN, frame.size());
@@ -331,7 +337,7 @@ impl canvas::Program<Message> for GridState {
                         "{cell_count} cell{} @ {}",
                         if cell_count == 1 { "" } else { "s" },
                         if valid_sequence.is_ok() {
-                            format!("{:.3} distance", valid_sequence.unwrap())
+                            format!("{} distance", valid_sequence.unwrap())
                         } else {
                             "invalid sequence".to_string()
                         },
@@ -405,6 +411,11 @@ impl GridCell {
 
     pub fn euclidean_distance(&self, other: &Self) -> f64 {
         (((other.x - self.x) as f64).powi(2) + ((other.y - self.y) as f64).powi(2)).sqrt()
+    }
+
+    pub fn euclidean_distance_squared(&self, other: &Self) -> usize {
+        ((other.x - self.x).checked_pow(2).unwrap() + (other.y - self.y).checked_pow(2).unwrap())
+            as usize
     }
 }
 

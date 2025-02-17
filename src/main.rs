@@ -1,8 +1,9 @@
 mod grid;
 mod stitch;
+mod symbolic_sum;
 
 use crate::grid::{GridCell, GridState};
-use iced::widget::{button, column, container};
+use iced::widget::{button, checkbox, column, container};
 use iced::{Element, Fill, Task, Theme};
 use std::collections::{HashMap, VecDeque};
 
@@ -22,6 +23,7 @@ fn main() -> iced::Result {
 pub enum Message {
     Grid(grid::Message),
     ClearGrid,
+    ChangeCalculationSpecificity(bool),
 }
 
 #[derive(Debug, Default)]
@@ -36,6 +38,9 @@ impl CrossStitchSolver {
                 self.grid_state.update(message);
             }
             Message::ClearGrid => self.grid_state.clear(),
+            Message::ChangeCalculationSpecificity(check_box) => {
+                self.grid_state.precise_cost = check_box;
+            }
         }
         Task::none()
     }
@@ -45,6 +50,8 @@ impl CrossStitchSolver {
             button("Clear")
                 .on_press(Message::ClearGrid)
                 .style(button::danger),
+            checkbox("Precise Cost", self.grid_state.precise_cost)
+                .on_toggle(Message::ChangeCalculationSpecificity),
         ]
         .height(Fill);
 
