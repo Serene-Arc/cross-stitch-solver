@@ -237,7 +237,6 @@ impl canvas::Program<Message> for GridState {
 
             frame.with_save(|frame| {
                 frame.translate(screen_centre);
-                frame.scale_nonuniform(Vector::new(1.0, -1.0));
                 frame.scale(self.scaling);
                 frame.translate(self.translation);
                 frame.scale(GridCell::SIZE);
@@ -314,7 +313,6 @@ impl canvas::Program<Message> for GridState {
             if let Some(cell) = hovered_grid_cell {
                 frame.with_save(|frame| {
                     frame.translate(screen_centre);
-                    frame.scale_nonuniform(Vector::new(1.0, -1.0));
                     frame.scale(self.scaling);
                     frame.translate(self.translation);
                     frame.scale(GridCell::SIZE);
@@ -372,7 +370,6 @@ impl canvas::Program<Message> for GridState {
         // Make the grid for the cells
         let grid = self.grid_cache.draw(renderer, bounds.size(), |frame| {
             frame.translate(screen_centre);
-            frame.scale_nonuniform(Vector::new(1.0, -1.0));
             frame.scale(self.scaling);
             frame.translate(self.translation);
             frame.scale(GridCell::SIZE);
@@ -416,12 +413,12 @@ impl GridCell {
     const SIZE: u16 = 20;
 
     fn at(position: Point) -> GridCell {
-        let x = (position.x / GridCell::SIZE as f32).ceil() as isize;
-        let y = (position.y / GridCell::SIZE as f32).ceil() as isize;
+        let mathematical_x = (position.x / GridCell::SIZE as f32).ceil() as isize;
+        let mathematical_y = (position.y / GridCell::SIZE as f32).ceil() as isize;
 
         GridCell {
-            x: x.saturating_sub(1),
-            y: -y,
+            x: mathematical_x.saturating_sub(1),
+            y: mathematical_y,
         }
     }
 
