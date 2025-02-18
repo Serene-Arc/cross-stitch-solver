@@ -8,12 +8,12 @@ use std::collections::HashMap;
 pub struct HalfStitch {
     // The start is the cell of the stitch, from the bottom left corner.
     pub start: GridCell,
-    pub facing_right: bool,
+    pub first_stitch: bool,
 }
 
 impl HalfStitch {
     pub fn get_end_location(&self) -> GridCell {
-        match self.facing_right {
+        match self.first_stitch {
             true => GridCell {
                 x: self.start.x + 1,
                 y: self.start.y + 1,
@@ -26,7 +26,7 @@ impl HalfStitch {
     }
 
     pub fn make_path_stroke(&self) -> Path {
-        if self.facing_right {
+        if self.first_stitch {
             Path::line(
                 Point {
                     x: self.start.x as f32,
@@ -59,7 +59,7 @@ impl HalfStitch {
                 false => {
                     out.push(HalfStitch {
                         start: *cell,
-                        facing_right: true,
+                        first_stitch: true,
                     });
                     seen_cells.insert(cell, true);
                 }
@@ -69,7 +69,7 @@ impl HalfStitch {
                             x: cell.x + 1,
                             y: cell.y,
                         },
-                        facing_right: false,
+                        first_stitch: false,
                     });
                 }
             }
@@ -145,7 +145,7 @@ mod test {
     fn test_get_end_facing_right() {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
-            facing_right: true,
+            first_stitch: true,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: 1, y: 1 });
@@ -155,7 +155,7 @@ mod test {
     fn test_get_end_facing_left() {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
-            facing_right: false,
+            first_stitch: false,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: -1, y: 1 });
@@ -165,7 +165,7 @@ mod test {
     fn test_get_end_facing_left_2() {
         let result = HalfStitch {
             start: GridCell { x: 1, y: 0 },
-            facing_right: false,
+            first_stitch: false,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: 0, y: 1 });
@@ -178,7 +178,7 @@ mod test {
             result[0],
             HalfStitch {
                 start: GridCell { x: 0, y: 0 },
-                facing_right: true
+                first_stitch: true
             }
         )
     }
@@ -193,11 +193,11 @@ mod test {
             vec![
                 HalfStitch {
                     start: GridCell { x: 0, y: 0 },
-                    facing_right: true
+                    first_stitch: true
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
-                    facing_right: false
+                    first_stitch: false
                 },
             ]
         )
@@ -218,15 +218,15 @@ mod test {
             vec![
                 HalfStitch {
                     start: GridCell { x: 0, y: 0 },
-                    facing_right: true
+                    first_stitch: true
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
-                    facing_right: false
+                    first_stitch: false
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
-                    facing_right: true
+                    first_stitch: true
                 },
             ]
         )
