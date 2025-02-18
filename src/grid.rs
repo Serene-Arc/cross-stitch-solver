@@ -126,32 +126,6 @@ impl GridState {
         frame.translate(self.translation);
         frame.scale(GridCell::SIZE);
     }
-
-    fn determine_stitch_line_type(stitch: &HalfStitch) -> Path {
-        if stitch.facing_right {
-            Path::line(
-                Point {
-                    x: stitch.start.x as f32,
-                    y: stitch.start.y as f32,
-                },
-                Point {
-                    x: (stitch.start.x + 1) as f32,
-                    y: (stitch.start.y + 1) as f32,
-                },
-            )
-        } else {
-            Path::line(
-                Point {
-                    x: stitch.start.x as f32,
-                    y: stitch.start.y as f32,
-                },
-                Point {
-                    x: (stitch.start.x - 1) as f32,
-                    y: (stitch.start.y + 1) as f32,
-                },
-            )
-        }
-    }
 }
 
 impl canvas::Program<Message> for GridState {
@@ -286,7 +260,7 @@ impl canvas::Program<Message> for GridState {
                 let mut alpha = 1.0;
                 // Iterate in verse order so we can decrease the opacity for each stitch.
                 for stitch in stitches.iter().rev() {
-                    let line = Self::determine_stitch_line_type(stitch);
+                    let line = stitch.make_path_stroke();
                     let line_stroke = Stroke {
                         width: 5.0,
                         style: Style::Solid(Color {

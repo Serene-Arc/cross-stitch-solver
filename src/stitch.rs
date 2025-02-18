@@ -1,5 +1,7 @@
 use crate::grid::GridCell;
 use crate::symbolic_sum::SymbolicSum;
+use iced::widget::canvas::Path;
+use iced::Point;
 use std::collections::HashMap;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Hash)]
@@ -10,7 +12,7 @@ pub struct HalfStitch {
 }
 
 impl HalfStitch {
-    fn get_end_location(&self) -> GridCell {
+    pub fn get_end_location(&self) -> GridCell {
         match self.facing_right {
             true => GridCell {
                 x: self.start.x + 1,
@@ -22,6 +24,33 @@ impl HalfStitch {
             },
         }
     }
+
+    pub fn make_path_stroke(&self) -> Path {
+        if self.facing_right {
+            Path::line(
+                Point {
+                    x: self.start.x as f32,
+                    y: self.start.y as f32,
+                },
+                Point {
+                    x: (self.start.x + 1) as f32,
+                    y: (self.start.y + 1) as f32,
+                },
+            )
+        } else {
+            Path::line(
+                Point {
+                    x: self.start.x as f32,
+                    y: self.start.y as f32,
+                },
+                Point {
+                    x: (self.start.x - 1) as f32,
+                    y: (self.start.y + 1) as f32,
+                },
+            )
+        }
+    }
+
     pub fn convert_grid_cells<'a>(cells: impl Iterator<Item = &'a GridCell>) -> Vec<HalfStitch> {
         let mut seen_cells = HashMap::new();
         let mut out = Vec::new();
