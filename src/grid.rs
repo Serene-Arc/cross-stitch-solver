@@ -83,7 +83,7 @@ impl GridState {
 
         Point::new(
             (screen_input_position.x / self.scaling) + region.x,
-            (screen_input_position.y / self.scaling) + region.y,
+            -((screen_input_position.y / self.scaling) + region.y),
         )
     }
 
@@ -271,12 +271,10 @@ impl canvas::Program<Message> for GridState {
 
                 let region = self.visible_region(frame.size());
 
+                frame.scale_nonuniform(Vector { x: 1.0, y: -1.0 });
+
                 for cell in region.cull(self.program_state.selected_cells.iter()) {
-                    frame.fill_rectangle(
-                        Point::new(cell.x as f32, cell.y as f32),
-                        Size::UNIT,
-                        Color::WHITE,
-                    );
+                    frame.fill_rectangle(Point::from(cell), Size::UNIT, Color::WHITE);
                 }
 
                 // Mark the first pair of invalid stitches, if there are any.
@@ -285,7 +283,7 @@ impl canvas::Program<Message> for GridState {
                     Err((first, second)) => {
                         for cell in region.cull([*first, *second].iter()) {
                             frame.fill_rectangle(
-                                Point::new(cell.x as f32, cell.y as f32),
+                                Point::from(cell),
                                 Size::UNIT,
                                 Color::from_rgb(100.0, 0.0, 0.0),
                             );
@@ -327,8 +325,9 @@ impl canvas::Program<Message> for GridState {
                 frame.with_save(|frame| {
                     self.transform_frame_for_cells(screen_centre, frame);
 
+                    frame.scale_nonuniform(Vector { x: 1.0, y: -1.0 });
                     frame.fill_rectangle(
-                        Point::new(cell.x as f32, cell.y as f32),
+                        Point::from(cell),
                         Size::UNIT,
                         Color {
                             a: 0.2,
@@ -428,6 +427,13 @@ impl GridCell {
     pub fn euclidean_distance_squared(&self, other: &Self) -> usize {
         ((other.x - self.x).checked_pow(2).unwrap() + (other.y - self.y).checked_pow(2).unwrap())
             as usize
+    }
+
+    pub fn invert_y(&self) -> Self {
+        GridCell {
+            x: self.x,
+            y: -self.y,
+        }
     }
 }
 
