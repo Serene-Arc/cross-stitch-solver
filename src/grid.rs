@@ -126,6 +126,42 @@ impl GridState {
         frame.translate(self.translation);
         frame.scale(GridCell::SIZE);
     }
+
+    fn make_grid_background(
+        &self,
+        renderer: &Renderer,
+        bounds: Rectangle,
+        screen_centre: Vector,
+    ) -> Geometry {
+        self.grid_cache.draw(renderer, bounds.size(), |frame| {
+            self.transform_frame_for_cells(screen_centre, frame);
+
+            let region = self.visible_region(frame.size());
+            let rows = region.rows();
+            let columns = region.columns();
+            let (total_rows, total_columns) = (rows.clone().count(), columns.clone().count());
+            let width = 2.0 / GridCell::SIZE as f32;
+            let color = Color::from_rgb8(70, 74, 83);
+
+            frame.translate(Vector::new(-width / 2.0, -width / 2.0));
+
+            for row in region.rows() {
+                frame.fill_rectangle(
+                    Point::new(*columns.start() as f32, row as f32),
+                    Size::new(total_columns as f32, width),
+                    color,
+                );
+            }
+
+            for column in region.columns() {
+                frame.fill_rectangle(
+                    Point::new(column as f32, *rows.start() as f32),
+                    Size::new(width, total_rows as f32),
+                    color,
+                );
+            }
+        })
+    }
 }
 
 impl canvas::Program<Message> for GridState {
@@ -357,34 +393,7 @@ impl canvas::Program<Message> for GridState {
         };
 
         // Make the grid for the cells
-        let grid = self.grid_cache.draw(renderer, bounds.size(), |frame| {
-            self.transform_frame_for_cells(screen_centre, frame);
-
-            let region = self.visible_region(frame.size());
-            let rows = region.rows();
-            let columns = region.columns();
-            let (total_rows, total_columns) = (rows.clone().count(), columns.clone().count());
-            let width = 2.0 / GridCell::SIZE as f32;
-            let color = Color::from_rgb8(70, 74, 83);
-
-            frame.translate(Vector::new(-width / 2.0, -width / 2.0));
-
-            for row in region.rows() {
-                frame.fill_rectangle(
-                    Point::new(*columns.start() as f32, row as f32),
-                    Size::new(total_columns as f32, width),
-                    color,
-                );
-            }
-
-            for column in region.columns() {
-                frame.fill_rectangle(
-                    Point::new(column as f32, *rows.start() as f32),
-                    Size::new(width, total_rows as f32),
-                    color,
-                );
-            }
-        });
+        let grid = self.make_grid_background(renderer, bounds, screen_centre);
         vec![selected_cells, grid, cell_highlight]
     }
 }
