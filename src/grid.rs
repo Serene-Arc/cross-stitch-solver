@@ -347,6 +347,19 @@ impl canvas::Program<Message> for GridState {
                         "({}, {}) grid, ({:07.2}, {:07.2}) raw screen, ({:07.2}, {:07.2}) screen",
                         cell.x, cell.y, cursor.x, cursor.y, math_cursor.x, math_cursor.y
                     ),
+                    position: text.position - Vector::new(0.0, 32.0),
+                    ..text
+                });
+
+                let visible_region = self.visible_region(frame.size());
+                frame.fill_text(Text {
+                    content: format!(
+                        "Visible Area: columns {} to {}, rows {} to {}",
+                        visible_region.columns().start(),
+                        visible_region.columns().end(),
+                        visible_region.rows().start(),
+                        visible_region.rows().end(),
+                    ),
                     position: text.position - Vector::new(0.0, 16.0),
                     ..text
                 });
