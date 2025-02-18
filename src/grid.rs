@@ -74,7 +74,11 @@ impl GridState {
     }
 
     /// Project a given screen coordinate onto the visible region of the grid.
-    fn project(&self, screen_input_position: Point, visible_size: Size) -> Point {
+    fn project_screen_to_mathematical_point(
+        &self,
+        screen_input_position: Point,
+        visible_size: Size,
+    ) -> Point {
         let region = self.visible_region(visible_size);
 
         Point::new(
@@ -137,8 +141,9 @@ impl canvas::Program<Message> for GridState {
             Some(pos) => pos,
         };
 
-        let cell =
-            GridCell::cell_at_screen_point(self.project(screen_cursor_position, bounds.size()));
+        let cell = GridCell::cell_at_screen_point(
+            self.project_screen_to_mathematical_point(screen_cursor_position, bounds.size()),
+        );
         match event {
             Event::Mouse(mouse_event) => match mouse_event {
                 mouse::Event::ButtonPressed(button) => {
@@ -308,7 +313,9 @@ impl canvas::Program<Message> for GridState {
             let mut frame = Frame::new(renderer, bounds.size());
 
             let hovered_grid_cell = cursor.position_in(bounds).map(|position| {
-                GridCell::cell_at_screen_point(self.project(position, frame.size()))
+                GridCell::cell_at_screen_point(
+                    self.project_screen_to_mathematical_point(position, frame.size()),
+                )
             });
 
             if let Some(cell) = hovered_grid_cell {
