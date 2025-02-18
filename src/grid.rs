@@ -343,7 +343,7 @@ impl canvas::Program<Message> for GridState {
                 let cursor = cursor.position_in(bounds).unwrap();
                 frame.fill_text(Text {
                     content: format!(
-                        "({}, {}) grid, ({:07.2}, {:07.2})",
+                        "({}, {}) grid, ({:07.2}, {:07.2}) screen",
                         cell.x, cell.y, cursor.x, cursor.y
                     ),
                     position: text.position - Vector::new(0.0, 16.0),
