@@ -294,7 +294,7 @@ impl canvas::Program<Message> for GridState {
                 for stitch in stitches.iter().rev() {
                     let line = stitch.make_path_stroke();
                     let line_stroke = Stroke {
-                        width: 5.0,
+                        width: 2.0 * self.scaling,
                         style: Style::Solid(Color {
                             a: alpha,
                             ..Color::BLACK
