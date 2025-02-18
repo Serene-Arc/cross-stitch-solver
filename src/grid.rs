@@ -126,6 +126,32 @@ impl GridState {
         frame.translate(self.translation);
         frame.scale(GridCell::SIZE);
     }
+
+    fn determine_stitch_line_type(stitch: &HalfStitch) -> Path {
+        if stitch.facing_right {
+            Path::line(
+                Point {
+                    x: stitch.start.x as f32,
+                    y: stitch.start.y as f32,
+                },
+                Point {
+                    x: (stitch.start.x + 1) as f32,
+                    y: (stitch.start.y + 1) as f32,
+                },
+            )
+        } else {
+            Path::line(
+                Point {
+                    x: stitch.start.x as f32,
+                    y: stitch.start.y as f32,
+                },
+                Point {
+                    x: (stitch.start.x - 1) as f32,
+                    y: (stitch.start.y + 1) as f32,
+                },
+            )
+        }
+    }
 }
 
 impl canvas::Program<Message> for GridState {
@@ -242,6 +268,8 @@ impl canvas::Program<Message> for GridState {
                         Color::WHITE,
                     );
                 }
+
+                // Mark the first pair of invalid stitches, if there are any.
                 match &valid_sequence {
                     Ok(_) => {}
                     Err((first, second)) => {
@@ -254,31 +282,11 @@ impl canvas::Program<Message> for GridState {
                         }
                     }
                 }
+
                 let mut alpha = 1.0;
+                // Iterate in verse order so we can decrease the opacity for each stitch.
                 for stitch in stitches.iter().rev() {
-                    let line = if stitch.facing_right {
-                        Path::line(
-                            Point {
-                                x: stitch.start.x as f32,
-                                y: stitch.start.y as f32,
-                            },
-                            Point {
-                                x: (stitch.start.x + 1) as f32,
-                                y: (stitch.start.y + 1) as f32,
-                            },
-                        )
-                    } else {
-                        Path::line(
-                            Point {
-                                x: (stitch.start.x) as f32,
-                                y: stitch.start.y as f32,
-                            },
-                            Point {
-                                x: (stitch.start.x - 1) as f32,
-                                y: (stitch.start.y + 1) as f32,
-                            },
-                        )
-                    };
+                    let line = Self::determine_stitch_line_type(stitch);
                     let line_stroke = Stroke {
                         width: 5.0,
                         style: Style::Solid(Color {
@@ -295,6 +303,7 @@ impl canvas::Program<Message> for GridState {
                 }
             });
         });
+
         let cell_highlight = {
             let mut frame = Frame::new(renderer, bounds.size());
 
@@ -330,6 +339,7 @@ impl canvas::Program<Message> for GridState {
                 ..Text::default()
             };
             if let Some(cell) = hovered_grid_cell {
+                // Since there is a grid cell under the cursor, we know that unwrap will work.
                 let cursor = cursor.position_in(bounds).unwrap();
                 frame.fill_text(Text {
                     content: format!(
