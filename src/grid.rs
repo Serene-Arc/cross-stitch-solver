@@ -502,3 +502,174 @@ pub enum GridInteraction {
         origin: Point,
     },
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_region_rows_positive() {
+        let test_region = Region {
+            x: 0.0,
+            y: 0.0,
+            width: 100.0,
+            height: 100.0,
+        };
+        let result = test_region.rows();
+        assert_eq!(result, 0..=5);
+    }
+
+    #[test]
+    fn test_region_rows_negative() {
+        let test_region = Region {
+            x: -100.0,
+            y: -100.0,
+            width: 100.0,
+            height: 100.0,
+        };
+        let result = test_region.rows();
+        assert_eq!(result, -5..=0);
+    }
+
+    #[test]
+    fn test_region_rows_span_0() {
+        let test_region = Region {
+            x: -100.0,
+            y: -100.0,
+            width: 200.0,
+            height: 200.0,
+        };
+        let result = test_region.rows();
+        assert_eq!(result, -5..=5);
+    }
+
+    #[test]
+    fn test_region_cull_single_in_origin() {
+        let test_region = Region {
+            x: -100.0,
+            y: -100.0,
+            width: 200.0,
+            height: 200.0,
+        };
+        let test_cells = vec![GridCell::new(0, 0)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_region_cull_two_in_middle() {
+        let test_region = Region {
+            x: -100.0,
+            y: -100.0,
+            width: 200.0,
+            height: 200.0,
+        };
+        let test_cells = vec![GridCell::new(0, 0), GridCell::new(1, 0)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn test_region_cull_one_at_left_edge() {
+        let test_region = Region {
+            x: 0.0,
+            y: -100.0,
+            width: 100.0,
+            height: 200.0,
+        };
+        let test_cells = vec![GridCell::new(0, 0)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_region_cull_one_at_top_edge() {
+        let test_region = Region {
+            x: -100.0,
+            y: 0.0,
+            width: 200.0,
+            height: 100.0,
+        };
+        let test_cells = vec![GridCell::new(0, 0)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_region_cull_one_at_bottom_edge() {
+        let test_region = Region {
+            x: -100.0,
+            y: 0.0,
+            width: 200.0,
+            height: 100.0,
+        };
+        let test_cells = vec![GridCell::new(0, 5)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_region_cull_one_at_right_edge() {
+        let test_region = Region {
+            x: 0.0,
+            y: -100.0,
+            width: 100.0,
+            height: 200.0,
+        };
+        let test_cells = vec![GridCell::new(5, 0)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_region_cull_one_at_top_left_corner() {
+        let test_region = Region {
+            x: 0.0,
+            y: 0.0,
+            width: 100.0,
+            height: 100.0,
+        };
+        let test_cells = vec![GridCell::new(0, 0)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_region_cull_one_at_top_right_corner() {
+        let test_region = Region {
+            x: 0.0,
+            y: 0.0,
+            width: 100.0,
+            height: 100.0,
+        };
+        let test_cells = vec![GridCell::new(5, 0)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_region_cull_one_at_bottom_left_corner() {
+        let test_region = Region {
+            x: 0.0,
+            y: 0.0,
+            width: 100.0,
+            height: 100.0,
+        };
+        let test_cells = vec![GridCell::new(0, 5)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_region_cull_one_at_bottom_right_corner() {
+        let test_region = Region {
+            x: 0.0,
+            y: 0.0,
+            width: 100.0,
+            height: 100.0,
+        };
+        let test_cells = vec![GridCell::new(5, 5)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+}
