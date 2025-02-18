@@ -470,7 +470,7 @@ impl Region {
 
         let visible_rows = (self.height / GridCell::SIZE as f32).ceil() as isize;
 
-        first_row..=first_row + visible_rows
+        first_row..=(first_row + visible_rows)
     }
 
     /// Get indices of all cell columns that should be visible
@@ -479,7 +479,7 @@ impl Region {
 
         let visible_columns = (self.width / GridCell::SIZE as f32).ceil() as isize;
 
-        first_column..=first_column + visible_columns
+        first_column..=(first_column + visible_columns)
     }
 
     fn cull<'a>(
