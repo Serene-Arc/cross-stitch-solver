@@ -19,11 +19,20 @@ pub enum Message {
 
 #[derive(Debug)]
 pub struct GridState {
+    /// Cache for the drawn grid.
     grid_cache: Cache,
+
+    /// Cache for the selected cells and stitch markings.
     cell_cache: Cache,
+
+    /// Offset for the view of the screen from the origin.
     translation: Vector,
+
+    /// Scaling factor for the view.
     scaling: f32,
     pub program_state: ProgramState,
+
+    /// Bool for whether to display the cost in precise mathematical terms.
     pub precise_cost: bool,
 }
 
@@ -44,32 +53,33 @@ impl GridState {
     const MIN_SCALING: f32 = 0.1;
     const MAX_SCALING: f32 = 4.0;
 
-    /// Determine what part of the grid should be visible.
+    /// Determine the region that should be visible.
     fn visible_region(&self, size: Size) -> Region {
-        let width = size.width / self.scaling;
-        let height = size.height / self.scaling;
+        let view_width = size.width / self.scaling;
+        let view_height = size.height / self.scaling;
 
         Region {
-            x: -self.translation.x - width / 2.0,
-            y: -self.translation.y - height / 2.0,
-            width,
-            height,
+            x: -self.translation.x - (view_width / 2.0),
+            y: -self.translation.y - (view_height / 2.0),
+            width: view_width,
+            height: view_height,
         }
     }
 
+    /// Clear everything to return to as-new state.
     pub fn clear(&mut self) {
         self.grid_cache.clear();
         self.cell_cache.clear();
         self.program_state.clear();
     }
 
-    /// Project a given point onto the visible region of the grid.
-    fn project(&self, input_position: Point, visible_size: Size) -> Point {
+    /// Project a given screen coordinate onto the visible region of the grid.
+    fn project(&self, screen_input_position: Point, visible_size: Size) -> Point {
         let region = self.visible_region(visible_size);
 
         Point::new(
-            input_position.x / self.scaling + region.x,
-            input_position.y / self.scaling + region.y,
+            (screen_input_position.x / self.scaling) + region.x,
+            (screen_input_position.y / self.scaling) + region.y,
         )
     }
 
@@ -120,14 +130,14 @@ impl canvas::Program<Message> for GridState {
         if let Event::Mouse(mouse::Event::ButtonReleased(_)) = event {
             *interaction = GridInteraction::None;
         }
-        let cursor_position = match cursor.position_in(bounds) {
+        let screen_cursor_position = match cursor.position_in(bounds) {
             None => {
                 return (Status::Ignored, None);
             }
             Some(pos) => pos,
         };
 
-        let cell = GridCell::at(self.project(cursor_position, bounds.size()));
+        let cell = GridCell::at(self.project(screen_cursor_position, bounds.size()));
         match event {
             Event::Mouse(mouse_event) => match mouse_event {
                 mouse::Event::ButtonPressed(button) => {
@@ -137,7 +147,7 @@ impl canvas::Program<Message> for GridState {
                         mouse::Button::Middle => {
                             *interaction = GridInteraction::Panning {
                                 translation: self.translation,
-                                origin: cursor_position,
+                                origin: screen_cursor_position,
                             };
                             None
                         }
@@ -151,7 +161,7 @@ impl canvas::Program<Message> for GridState {
                             translation,
                             origin,
                         } => Some(Message::Translated(
-                            translation + (cursor_position - origin) * (1.0 / self.scaling),
+                            translation + (screen_cursor_position - origin) * (1.0 / self.scaling),
                         )),
                         GridInteraction::None => None,
                     };
@@ -165,7 +175,9 @@ impl canvas::Program<Message> for GridState {
                         {
                             let old_scaling = self.scaling;
 
-                            let scaling = (self.scaling * (1.0 + y / 30.0))
+                            // Calculate the new scaling.
+                            // Note that 30.0 restricts the speed of the zoom.
+                            let scaling = (self.scaling * (1.0 + (y / 30.0)))
                                 .clamp(Self::MIN_SCALING, Self::MAX_SCALING);
 
                             let translation = if let Some(cursor_to_center) =
@@ -208,7 +220,10 @@ impl canvas::Program<Message> for GridState {
         bounds: Rectangle,
         cursor: Cursor,
     ) -> Vec<Geometry<Renderer>> {
-        let centre = Vector::new(bounds.width / 2.0, bounds.height / 2.0);
+        let screen_centre = Vector::new(bounds.width / 2.0, bounds.height / 2.0);
+
+        // Convert the stitches that already exist and check if they're valid,
+        // computing the cost as we go.
         let stitches = HalfStitch::convert_grid_cells(self.program_state.selected_cells.iter());
         let valid_sequence = if self.precise_cost {
             HalfStitch::check_valid_sequence_symbolic(&stitches)
@@ -221,7 +236,7 @@ impl canvas::Program<Message> for GridState {
             frame.fill(&background, Color::from_rgb8(0x40, 0x44, 0x4B));
 
             frame.with_save(|frame| {
-                frame.translate(centre);
+                frame.translate(screen_centre);
                 frame.scale_nonuniform(Vector::new(1.0, -1.0));
                 frame.scale(self.scaling);
                 frame.translate(self.translation);
@@ -298,7 +313,7 @@ impl canvas::Program<Message> for GridState {
 
             if let Some(cell) = hovered_grid_cell {
                 frame.with_save(|frame| {
-                    frame.translate(centre);
+                    frame.translate(screen_centre);
                     frame.scale_nonuniform(Vector::new(1.0, -1.0));
                     frame.scale(self.scaling);
                     frame.translate(self.translation);
@@ -356,7 +371,7 @@ impl canvas::Program<Message> for GridState {
 
         // Make the grid for the cells
         let grid = self.grid_cache.draw(renderer, bounds.size(), |frame| {
-            frame.translate(centre);
+            frame.translate(screen_centre);
             frame.scale_nonuniform(Vector::new(1.0, -1.0));
             frame.scale(self.scaling);
             frame.translate(self.translation);
@@ -434,8 +449,12 @@ impl From<GridCell> for Point {
 }
 
 pub struct Region {
+    /// The x-coordinate for the top left corner of the region.
     x: f32,
+
+    /// The y-coordinate for the top left corner of the region.
     y: f32,
+
     width: f32,
     height: f32,
 }
