@@ -165,10 +165,12 @@ impl canvas::Program<Message> for GridState {
                     let message = match *interaction {
                         GridInteraction::Panning {
                             translation,
-                            origin,
-                        } => Some(Message::Translated(
-                            translation + (screen_cursor_position - origin) * (1.0 / self.scaling),
-                        )),
+                            origin: pan_origin,
+                        } => {
+                            let new_vector =
+                                (screen_cursor_position - pan_origin) * (1.0 / self.scaling);
+                            Some(Message::Translated(translation + new_vector))
+                        }
                         GridInteraction::None => None,
                     };
 
