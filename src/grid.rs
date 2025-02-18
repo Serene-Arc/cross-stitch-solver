@@ -14,7 +14,7 @@ pub enum Message {
     Select(GridCell),
     Unselect(GridCell),
     Translated(Vector),
-    Scaled(f32, Option<Vector>),
+    Scaled(f32),
 }
 
 #[derive(Debug)]
@@ -103,12 +103,8 @@ impl GridState {
                 self.grid_cache.clear();
                 self.cell_cache.clear();
             }
-            Message::Scaled(scaling, translation) => {
+            Message::Scaled(scaling) => {
                 self.scaling = scaling;
-
-                if let Some(translation) = translation {
-                    self.translation = translation;
-                }
 
                 self.grid_cache.clear();
                 self.cell_cache.clear();
@@ -181,32 +177,12 @@ impl canvas::Program<Message> for GridState {
                         if y < 0.0 && self.scaling > Self::MIN_SCALING
                             || y > 0.0 && self.scaling < Self::MAX_SCALING
                         {
-                            let old_scaling = self.scaling;
-
                             // Calculate the new scaling.
                             // Note that 30.0 restricts the speed of the zoom.
                             let scaling = (self.scaling * (1.0 + (y / 30.0)))
                                 .clamp(Self::MIN_SCALING, Self::MAX_SCALING);
 
-                            let translation = if let Some(cursor_to_center) =
-                                cursor.position_from(bounds.center())
-                            {
-                                let factor = scaling - old_scaling;
-
-                                Some(
-                                    self.translation
-                                        - Vector::new(
-                                            cursor_to_center.x * factor
-                                                / (old_scaling * old_scaling),
-                                            cursor_to_center.y * factor
-                                                / (old_scaling * old_scaling),
-                                        ),
-                                )
-                            } else {
-                                None
-                            };
-
-                            let message = Message::Scaled(scaling, translation);
+                            let message = Message::Scaled(scaling);
                             (Status::Captured, Some(message))
                         } else {
                             (Status::Ignored, None)
