@@ -444,6 +444,12 @@ impl From<GridCell> for Point {
     }
 }
 
+impl From<&GridCell> for Point {
+    fn from(val: &GridCell) -> Self {
+        Point::from(*val)
+    }
+}
+
 pub struct Region {
     /// The x-coordinate for the top left corner of the region.
     x: f32,
