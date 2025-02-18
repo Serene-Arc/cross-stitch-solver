@@ -115,6 +115,17 @@ impl GridState {
     pub fn view(&self) -> Element<Message> {
         Canvas::new(self).width(Fill).height(Fill).into()
     }
+
+    fn transform_frame_for_cells(&self, screen_centre: Vector, frame: &mut Frame<Renderer>) {
+        // Order here is necessary for it to work correctly.
+        // First translate so the origin is the centre of the screen,
+        // then scale so the pan is correct for the scale.
+        // Finally, make it so the cells are drawn correctly.
+        frame.translate(screen_centre);
+        frame.scale(self.scaling);
+        frame.translate(self.translation);
+        frame.scale(GridCell::SIZE);
+    }
 }
 
 impl canvas::Program<Message> for GridState {
@@ -220,10 +231,7 @@ impl canvas::Program<Message> for GridState {
             frame.fill(&background, Color::from_rgb8(0x40, 0x44, 0x4B));
 
             frame.with_save(|frame| {
-                frame.translate(screen_centre);
-                frame.scale(self.scaling);
-                frame.translate(self.translation);
-                frame.scale(GridCell::SIZE);
+                self.transform_frame_for_cells(screen_centre, frame);
 
                 let region = self.visible_region(frame.size());
 
@@ -298,10 +306,7 @@ impl canvas::Program<Message> for GridState {
 
             if let Some(cell) = hovered_grid_cell {
                 frame.with_save(|frame| {
-                    frame.translate(screen_centre);
-                    frame.scale(self.scaling);
-                    frame.translate(self.translation);
-                    frame.scale(GridCell::SIZE);
+                    self.transform_frame_for_cells(screen_centre, frame);
 
                     frame.fill_rectangle(
                         Point::new(cell.x as f32, cell.y as f32),
@@ -355,10 +360,7 @@ impl canvas::Program<Message> for GridState {
 
         // Make the grid for the cells
         let grid = self.grid_cache.draw(renderer, bounds.size(), |frame| {
-            frame.translate(screen_centre);
-            frame.scale(self.scaling);
-            frame.translate(self.translation);
-            frame.scale(GridCell::SIZE);
+            self.transform_frame_for_cells(screen_centre, frame);
 
             let region = self.visible_region(frame.size());
             let rows = region.rows();
