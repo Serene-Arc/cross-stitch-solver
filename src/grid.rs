@@ -137,7 +137,8 @@ impl canvas::Program<Message> for GridState {
             Some(pos) => pos,
         };
 
-        let cell = GridCell::at(self.project(screen_cursor_position, bounds.size()));
+        let cell =
+            GridCell::cell_at_screen_point(self.project(screen_cursor_position, bounds.size()));
         match event {
             Event::Mouse(mouse_event) => match mouse_event {
                 mouse::Event::ButtonPressed(button) => {
@@ -306,9 +307,9 @@ impl canvas::Program<Message> for GridState {
         let cell_highlight = {
             let mut frame = Frame::new(renderer, bounds.size());
 
-            let hovered_grid_cell = cursor
-                .position_in(bounds)
-                .map(|position| GridCell::at(self.project(position, frame.size())));
+            let hovered_grid_cell = cursor.position_in(bounds).map(|position| {
+                GridCell::cell_at_screen_point(self.project(position, frame.size()))
+            });
 
             if let Some(cell) = hovered_grid_cell {
                 frame.with_save(|frame| {
@@ -412,13 +413,13 @@ pub struct GridCell {
 impl GridCell {
     const SIZE: u16 = 20;
 
-    fn at(position: Point) -> GridCell {
+    fn cell_at_screen_point(position: Point) -> GridCell {
         let mathematical_x = (position.x / GridCell::SIZE as f32).ceil() as isize;
         let mathematical_y = (position.y / GridCell::SIZE as f32).ceil() as isize;
 
         GridCell {
             x: mathematical_x.saturating_sub(1),
-            y: mathematical_y,
+            y: mathematical_y.saturating_sub(1),
         }
     }
 
