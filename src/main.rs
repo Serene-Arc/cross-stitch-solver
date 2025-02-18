@@ -3,7 +3,8 @@ mod stitch;
 mod symbolic_sum;
 
 use crate::grid::{GridCell, GridState};
-use iced::widget::{button, checkbox, column, container};
+use crate::stitch::FirstStitchCorner;
+use iced::widget::{button, checkbox, column, container, pick_list};
 use iced::{Element, Fill, Task, Theme};
 use std::collections::{HashMap, VecDeque};
 
@@ -24,6 +25,7 @@ pub enum Message {
     Grid(grid::Message),
     ClearGrid,
     ChangeCalculationSpecificity(bool),
+    ChangeFirstStitchCorner(FirstStitchCorner),
 }
 
 #[derive(Debug, Default)]
@@ -41,10 +43,19 @@ impl CrossStitchSolver {
             Message::ChangeCalculationSpecificity(check_box) => {
                 self.grid_state.precise_cost = check_box;
             }
+            Message::ChangeFirstStitchCorner(first_stitch_corner) => {
+                self.grid_state.bottom_stitch_corner = first_stitch_corner;
+            }
         }
         Task::none()
     }
     fn view(&self) -> Element<Message> {
+        let stitch_direction_options = [
+            FirstStitchCorner::BottomLeft,
+            FirstStitchCorner::BottomRight,
+            FirstStitchCorner::TopLeft,
+            FirstStitchCorner::TopRight,
+        ];
         let content = column![
             self.grid_state.view().map(Message::Grid),
             button("Clear")
@@ -52,6 +63,11 @@ impl CrossStitchSolver {
                 .style(button::danger),
             checkbox("Precise Cost", self.grid_state.precise_cost)
                 .on_toggle(Message::ChangeCalculationSpecificity),
+            pick_list(
+                stitch_direction_options,
+                Some(&self.grid_state.bottom_stitch_corner),
+                Message::ChangeFirstStitchCorner
+            ),
         ]
         .height(Fill);
 

@@ -1,4 +1,4 @@
-use crate::stitch::HalfStitch;
+use crate::stitch::{FirstStitchCorner, HalfStitch};
 use crate::ProgramState;
 use iced::event::Status;
 use iced::mouse::Cursor;
@@ -34,6 +34,9 @@ pub struct GridState {
 
     /// Bool for whether to display the cost in precise mathematical terms.
     pub precise_cost: bool,
+
+    /// Where the bottom stitch starts.
+    pub bottom_stitch_corner: FirstStitchCorner,
 }
 
 impl Default for GridState {
@@ -45,6 +48,7 @@ impl Default for GridState {
             scaling: 2.0,
             program_state: Default::default(),
             precise_cost: false,
+            bottom_stitch_corner: Default::default(),
         }
     }
 }
@@ -255,7 +259,10 @@ impl canvas::Program<Message> for GridState {
 
         // Convert the stitches that already exist and check if they're valid,
         // computing the cost as we go.
-        let stitches = HalfStitch::convert_grid_cells(self.program_state.selected_cells.iter());
+        let stitches = HalfStitch::convert_grid_cells(
+            self.program_state.selected_cells.iter(),
+            self.bottom_stitch_corner,
+        );
         let valid_sequence = if self.precise_cost {
             HalfStitch::check_valid_sequence_symbolic(&stitches)
         } else {
