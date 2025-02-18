@@ -489,7 +489,7 @@ impl Region {
         let rows = self.rows();
         let columns = self.columns();
 
-        cells.filter(move |cell| rows.contains(&cell.x) && columns.contains(&cell.y))
+        cells.filter(move |cell| columns.contains(&cell.x) && rows.contains(&cell.y))
     }
 }
 
@@ -669,6 +669,19 @@ mod tests {
             height: 100.0,
         };
         let test_cells = vec![GridCell::new(5, 5)];
+        let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_region_cull_rectangular_region() {
+        let test_region = Region {
+            x: -256.0,
+            y: -179.0,
+            width: 512.0,
+            height: 358.0,
+        };
+        let test_cells = vec![GridCell::new(-11, 0)];
         let result = test_region.cull(test_cells.iter()).collect::<Vec<_>>();
         assert_eq!(result.len(), 1);
     }
