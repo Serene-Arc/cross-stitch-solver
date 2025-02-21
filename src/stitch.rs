@@ -87,7 +87,7 @@ impl HalfStitch {
     }
 
     pub fn make_path_stroke(&self) -> Path {
-        let first_corner = self.start + self.stitch_corner.get_offset_from_bottom_left();
+        let first_corner = self.start;
         let second_corner = self.get_end_location();
         Path::line(Point::from(first_corner), Point::from(second_corner))
     }
