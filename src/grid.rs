@@ -171,6 +171,47 @@ impl GridState {
             }
         })
     }
+
+    fn draw_text_information(
+        &self,
+        valid_sequence: Result<String, (GridCell, GridCell)>,
+        frame: &mut Frame<Renderer>,
+        text: Text,
+        cell: GridCell,
+    ) {
+        frame.fill_text(Text {
+            content: format!("({}, {}) grid", cell.x, cell.y,),
+            position: text.position - Vector::new(0.0, 32.0),
+            ..text
+        });
+
+        let visible_region = self.visible_region(frame.size());
+        frame.fill_text(Text {
+            content: format!(
+                "Visible Area: columns {} to {}, rows {} to {}",
+                visible_region.columns().start(),
+                visible_region.columns().end(),
+                visible_region.rows().start(),
+                visible_region.rows().end(),
+            ),
+            position: text.position - Vector::new(0.0, 16.0),
+            ..text
+        });
+        let cell_count = self.program_state.selected_cells.len();
+
+        frame.fill_text(Text {
+            content: format!(
+                "{cell_count} cell{} @ {}",
+                if cell_count == 1 { "" } else { "s" },
+                if valid_sequence.is_ok() {
+                    format!("{} distance", valid_sequence.unwrap())
+                } else {
+                    "invalid sequence".to_string()
+                },
+            ),
+            ..text
+        });
+    }
 }
 
 impl canvas::Program<Message> for GridState {
@@ -359,38 +400,7 @@ impl canvas::Program<Message> for GridState {
                 ..Text::default()
             };
             if let Some(cell) = hovered_grid_cell {
-                frame.fill_text(Text {
-                    content: format!("({}, {}) grid", cell.x, cell.y,),
-                    position: text.position - Vector::new(0.0, 32.0),
-                    ..text
-                });
-
-                let visible_region = self.visible_region(frame.size());
-                frame.fill_text(Text {
-                    content: format!(
-                        "Visible Area: columns {} to {}, rows {} to {}",
-                        visible_region.columns().start(),
-                        visible_region.columns().end(),
-                        visible_region.rows().start(),
-                        visible_region.rows().end(),
-                    ),
-                    position: text.position - Vector::new(0.0, 16.0),
-                    ..text
-                });
-                let cell_count = self.program_state.selected_cells.len();
-
-                frame.fill_text(Text {
-                    content: format!(
-                        "{cell_count} cell{} @ {}",
-                        if cell_count == 1 { "" } else { "s" },
-                        if valid_sequence.is_ok() {
-                            format!("{} distance", valid_sequence.unwrap())
-                        } else {
-                            "invalid sequence".to_string()
-                        },
-                    ),
-                    ..text
-                });
+                self.draw_text_information(valid_sequence, &mut frame, text, cell);
             }
 
             frame.into_geometry()
