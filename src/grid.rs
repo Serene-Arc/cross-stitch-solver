@@ -53,7 +53,7 @@ impl Default for GridState {
             program_state: Default::default(),
             precise_cost: false,
             bottom_stitch_corner: Default::default(),
-            top_stitch_corner: StartingStitchCorner::default().get_valid_opposites()[0],
+            top_stitch_corner: StartingStitchCorner::default().get_possible_top_stitch_corners()[0],
         }
     }
 }

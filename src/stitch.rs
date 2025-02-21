@@ -15,7 +15,9 @@ pub enum StartingStitchCorner {
 }
 
 impl StartingStitchCorner {
-    pub fn get_valid_opposites(&self) -> [Self; 2] {
+    /// Get the corners where the alternate stitch can start.
+    /// Given a bottom stitch's starting corner, there are two options to make a cross.
+    pub fn get_possible_top_stitch_corners(&self) -> [Self; 2] {
         match self {
             StartingStitchCorner::BottomLeft => [
                 StartingStitchCorner::BottomRight,

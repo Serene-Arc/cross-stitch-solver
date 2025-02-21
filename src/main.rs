@@ -78,7 +78,9 @@ impl CrossStitchSolver {
                 ),
                 "Top Stitch Start Corner: ",
                 pick_list(
-                    self.grid_state.top_stitch_corner.get_valid_opposites(),
+                    self.grid_state
+                        .top_stitch_corner
+                        .get_possible_top_stitch_corners(),
                     Some(&self.grid_state.top_stitch_corner),
                     Message::ChangeTopStitchCorner
                 ),
