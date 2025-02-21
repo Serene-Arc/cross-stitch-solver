@@ -359,14 +359,8 @@ impl canvas::Program<Message> for GridState {
                 ..Text::default()
             };
             if let Some(cell) = hovered_grid_cell {
-                // Since there is a grid cell under the cursor, we know that unwrap will work.
-                let cursor = cursor.position_in(bounds).unwrap();
-                let math_cursor = self.project_screen_to_mathematical_point(cursor, frame.size());
                 frame.fill_text(Text {
-                    content: format!(
-                        "({}, {}) grid, ({:07.2}, {:07.2}) raw screen, ({:07.2}, {:07.2}) screen",
-                        cell.x, cell.y, cursor.x, cursor.y, math_cursor.x, math_cursor.y
-                    ),
+                    content: format!("({}, {}) grid", cell.x, cell.y,),
                     position: text.position - Vector::new(0.0, 32.0),
                     ..text
                 });
