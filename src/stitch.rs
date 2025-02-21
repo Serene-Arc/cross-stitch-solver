@@ -204,7 +204,7 @@ mod test {
     }
 
     #[test]
-    fn test_get_end_facing_right() {
+    fn test_get_end_bottom_left_facing_right() {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
             first_stitch: true,
@@ -216,7 +216,7 @@ mod test {
     }
 
     #[test]
-    fn test_get_end_facing_left() {
+    fn test_get_end_bottom_left_facing_left() {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
             first_stitch: false,
@@ -228,7 +228,7 @@ mod test {
     }
 
     #[test]
-    fn test_get_end_facing_left_2() {
+    fn test_get_end_bottom_left_facing_left_2() {
         let result = HalfStitch {
             start: GridCell { x: 1, y: 0 },
             first_stitch: false,
