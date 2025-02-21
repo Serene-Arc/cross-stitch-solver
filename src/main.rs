@@ -1,9 +1,11 @@
 mod grid;
+mod grid_cell;
 mod stitch;
 mod symbolic_sum;
 
-use crate::grid::{GridCell, GridState};
+use crate::grid::GridState;
 use crate::stitch::StartingStitchCorner;
+use grid_cell::GridCell;
 use iced::widget::{button, checkbox, column, container, pick_list, row};
 use iced::{Element, Fill, Task, Theme};
 use std::collections::{HashMap, VecDeque};

@@ -1,4 +1,4 @@
-use crate::grid::GridCell;
+use crate::grid_cell::GridCell;
 use crate::symbolic_sum::SymbolicSum;
 use iced::widget::canvas::Path;
 use std::collections::HashMap;

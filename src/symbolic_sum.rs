@@ -1,4 +1,4 @@
-use crate::grid::GridCell;
+use crate::grid_cell::GridCell;
 use prime_factorization::Factorization;
 use std::collections::HashMap;
 use std::fmt;
