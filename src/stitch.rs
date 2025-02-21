@@ -35,6 +35,15 @@ impl StartingStitchCorner {
             ],
         }
     }
+
+    pub fn get_offset_from_bottom_left(&self) -> GridCell {
+        match self {
+            StartingStitchCorner::BottomLeft => GridCell::new(0, 0),
+            StartingStitchCorner::BottomRight => GridCell::new(1, 0),
+            StartingStitchCorner::TopLeft => GridCell::new(0, 1),
+            StartingStitchCorner::TopRight => GridCell::new(1, 1),
+        }
+    }
 }
 
 impl fmt::Display for StartingStitchCorner {
