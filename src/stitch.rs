@@ -1,7 +1,6 @@
 use crate::grid::GridCell;
 use crate::symbolic_sum::SymbolicSum;
 use iced::widget::canvas::Path;
-use iced::Point;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
@@ -60,49 +59,16 @@ impl fmt::Display for StartingStitchCorner {
 pub struct HalfStitch {
     // The start is the cell of the stitch, from the bottom left corner.
     pub start: GridCell,
-    pub first_stitch: bool,
-    pub first_stitch_corner: StartingStitchCorner,
-    pub second_stitch_corner: StartingStitchCorner,
+    pub stitch_corner: StartingStitchCorner,
 }
 
 impl HalfStitch {
     pub fn get_end_location(&self) -> GridCell {
-        match self.first_stitch {
-            true => GridCell {
-                x: self.start.x + 1,
-                y: self.start.y + 1,
-            },
-            false => GridCell {
-                x: self.start.x - 1,
-                y: self.start.y + 1,
-            },
-        }
+        todo!()
     }
 
     pub fn make_path_stroke(&self) -> Path {
-        if self.first_stitch {
-            Path::line(
-                Point {
-                    x: self.start.x as f32,
-                    y: self.start.y as f32,
-                },
-                Point {
-                    x: (self.start.x + 1) as f32,
-                    y: (self.start.y + 1) as f32,
-                },
-            )
-        } else {
-            Path::line(
-                Point {
-                    x: self.start.x as f32,
-                    y: self.start.y as f32,
-                },
-                Point {
-                    x: (self.start.x - 1) as f32,
-                    y: (self.start.y + 1) as f32,
-                },
-            )
-        }
+        todo!()
     }
 
     pub fn convert_grid_cells<'a>(
@@ -117,9 +83,7 @@ impl HalfStitch {
                 false => {
                     out.push(HalfStitch {
                         start: *cell,
-                        first_stitch: true,
-                        first_stitch_corner: first_stitch_direction,
-                        second_stitch_corner: second_stitch_direction,
+                        stitch_corner: first_stitch_direction,
                     });
                     seen_cells.insert(cell, true);
                 }
@@ -129,9 +93,7 @@ impl HalfStitch {
                             x: cell.x + 1,
                             y: cell.y,
                         },
-                        first_stitch: false,
-                        first_stitch_corner: first_stitch_direction,
-                        second_stitch_corner: second_stitch_direction,
+                        stitch_corner: second_stitch_direction,
                     });
                 }
             }
@@ -207,9 +169,7 @@ mod test {
     fn test_get_end_bottom_left_facing_right() {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
-            first_stitch: true,
-            first_stitch_corner: StartingStitchCorner::BottomLeft,
-            second_stitch_corner: StartingStitchCorner::BottomRight,
+            stitch_corner: StartingStitchCorner::BottomLeft,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: 1, y: 1 });
@@ -219,9 +179,7 @@ mod test {
     fn test_get_end_bottom_left_facing_left() {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
-            first_stitch: false,
-            first_stitch_corner: StartingStitchCorner::BottomLeft,
-            second_stitch_corner: StartingStitchCorner::BottomRight,
+            stitch_corner: StartingStitchCorner::BottomLeft,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: -1, y: 1 });
@@ -231,9 +189,7 @@ mod test {
     fn test_get_end_bottom_left_facing_left_2() {
         let result = HalfStitch {
             start: GridCell { x: 1, y: 0 },
-            first_stitch: false,
-            first_stitch_corner: StartingStitchCorner::BottomLeft,
-            second_stitch_corner: StartingStitchCorner::BottomRight,
+            stitch_corner: StartingStitchCorner::BottomLeft,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: 0, y: 1 });
@@ -250,9 +206,7 @@ mod test {
             result[0],
             HalfStitch {
                 start: GridCell { x: 0, y: 0 },
-                first_stitch: true,
-                first_stitch_corner: StartingStitchCorner::BottomLeft,
-                second_stitch_corner: StartingStitchCorner::BottomRight,
+                stitch_corner: StartingStitchCorner::BottomLeft,
             }
         )
     }
@@ -269,15 +223,11 @@ mod test {
             vec![
                 HalfStitch {
                     start: GridCell { x: 0, y: 0 },
-                    first_stitch: true,
-                    first_stitch_corner: StartingStitchCorner::BottomLeft,
-                    second_stitch_corner: StartingStitchCorner::BottomRight,
+                    stitch_corner: StartingStitchCorner::BottomLeft,
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
-                    first_stitch: false,
-                    first_stitch_corner: StartingStitchCorner::BottomLeft,
-                    second_stitch_corner: StartingStitchCorner::BottomRight,
+                    stitch_corner: StartingStitchCorner::BottomLeft,
                 },
             ]
         )
@@ -300,21 +250,15 @@ mod test {
             vec![
                 HalfStitch {
                     start: GridCell { x: 0, y: 0 },
-                    first_stitch: true,
-                    first_stitch_corner: StartingStitchCorner::BottomLeft,
-                    second_stitch_corner: StartingStitchCorner::BottomRight,
+                    stitch_corner: StartingStitchCorner::BottomLeft,
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
-                    first_stitch: false,
-                    first_stitch_corner: StartingStitchCorner::BottomLeft,
-                    second_stitch_corner: StartingStitchCorner::BottomRight,
+                    stitch_corner: StartingStitchCorner::BottomLeft,
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
-                    first_stitch: true,
-                    first_stitch_corner: StartingStitchCorner::BottomLeft,
-                    second_stitch_corner: StartingStitchCorner::BottomRight,
+                    stitch_corner: StartingStitchCorner::BottomLeft,
                 },
             ]
         )
