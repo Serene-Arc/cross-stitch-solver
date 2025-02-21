@@ -1,6 +1,7 @@
 use crate::grid_cell::GridCell;
 use crate::symbolic_sum::SymbolicSum;
 use iced::widget::canvas::Path;
+use iced::Point;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
@@ -46,6 +47,15 @@ impl StartingStitchCorner {
             StartingStitchCorner::TopRight => GridCell::new(1, 1),
         }
     }
+
+    pub fn get_opposite_corner(&self) -> StartingStitchCorner {
+        match self {
+            StartingStitchCorner::BottomLeft => StartingStitchCorner::TopRight,
+            StartingStitchCorner::BottomRight => StartingStitchCorner::TopLeft,
+            StartingStitchCorner::TopLeft => StartingStitchCorner::BottomRight,
+            StartingStitchCorner::TopRight => StartingStitchCorner::BottomLeft,
+        }
+    }
 }
 
 impl fmt::Display for StartingStitchCorner {
@@ -68,11 +78,18 @@ pub struct HalfStitch {
 
 impl HalfStitch {
     pub fn get_end_location(&self) -> GridCell {
-        todo!()
+        let origin = self.start - self.stitch_corner.get_offset_from_bottom_left();
+        origin
+            + self
+                .stitch_corner
+                .get_opposite_corner()
+                .get_offset_from_bottom_left()
     }
 
     pub fn make_path_stroke(&self) -> Path {
-        todo!()
+        let first_corner = self.start + self.stitch_corner.get_offset_from_bottom_left();
+        let second_corner = self.get_end_location();
+        Path::line(Point::from(first_corner), Point::from(second_corner))
     }
 
     pub fn convert_grid_cells<'a>(
@@ -93,10 +110,7 @@ impl HalfStitch {
                 }
                 true => {
                     out.push(HalfStitch {
-                        start: GridCell {
-                            x: cell.x + 1,
-                            y: cell.y,
-                        },
+                        start: *cell + second_stitch_direction.get_offset_from_bottom_left(),
                         stitch_corner: second_stitch_direction,
                     });
                 }
@@ -170,7 +184,7 @@ mod test {
     }
 
     #[test]
-    fn test_get_end_bottom_left_facing_right() {
+    fn test_get_end_bottom_left() {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
             stitch_corner: StartingStitchCorner::BottomLeft,
@@ -180,20 +194,20 @@ mod test {
     }
 
     #[test]
-    fn test_get_end_bottom_left_facing_left() {
+    fn test_get_end_bottom_right() {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
-            stitch_corner: StartingStitchCorner::BottomLeft,
+            stitch_corner: StartingStitchCorner::BottomRight,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: -1, y: 1 });
     }
 
     #[test]
-    fn test_get_end_bottom_left_facing_left_2() {
+    fn test_get_end_bottom_left_2() {
         let result = HalfStitch {
             start: GridCell { x: 1, y: 0 },
-            stitch_corner: StartingStitchCorner::BottomLeft,
+            stitch_corner: StartingStitchCorner::BottomRight,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: 0, y: 1 });
@@ -231,7 +245,7 @@ mod test {
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
-                    stitch_corner: StartingStitchCorner::BottomLeft,
+                    stitch_corner: StartingStitchCorner::BottomRight,
                 },
             ]
         )
@@ -258,7 +272,7 @@ mod test {
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
-                    stitch_corner: StartingStitchCorner::BottomLeft,
+                    stitch_corner: StartingStitchCorner::BottomRight,
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },

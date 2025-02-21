@@ -1,5 +1,5 @@
 use iced::Point;
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct GridCell {
@@ -62,6 +62,16 @@ impl Add for GridCell {
         Self {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
+        }
+    }
+}
+impl Sub for GridCell {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
         }
     }
 }
