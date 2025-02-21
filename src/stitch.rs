@@ -15,6 +15,36 @@ pub enum StartingStitchCorner {
     TopRight,
 }
 
+impl StartingStitchCorner {
+    const VALID_OPPOSITES: [[StartingStitchCorner; 2]; 4] = [
+        // BottomLeft
+        [
+            StartingStitchCorner::BottomRight,
+            StartingStitchCorner::TopLeft,
+        ],
+        // BottomRight
+        [
+            StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::TopRight,
+        ],
+        // TopLeft
+        [
+            StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::TopRight,
+        ],
+        // TopRight
+        [
+            StartingStitchCorner::BottomRight,
+            StartingStitchCorner::TopLeft,
+        ],
+    ];
+
+    pub fn get_valid_opposites(&self) -> [Self; 2] {
+        // Safety: Assuming the enum variants are sequential starting from 0
+        StartingStitchCorner::VALID_OPPOSITES[*self as usize]
+    }
+}
+
 impl fmt::Display for StartingStitchCorner {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
@@ -32,6 +62,7 @@ pub struct HalfStitch {
     pub start: GridCell,
     pub first_stitch: bool,
     pub first_stitch_corner: StartingStitchCorner,
+    pub second_stitch_corner: StartingStitchCorner,
 }
 
 impl HalfStitch {
@@ -76,7 +107,8 @@ impl HalfStitch {
 
     pub fn convert_grid_cells<'a>(
         cells: impl Iterator<Item = &'a GridCell>,
-        stitch_direction: StartingStitchCorner,
+        first_stitch_direction: StartingStitchCorner,
+        second_stitch_direction: StartingStitchCorner,
     ) -> Vec<HalfStitch> {
         let mut seen_cells = HashMap::new();
         let mut out = Vec::new();
@@ -86,7 +118,8 @@ impl HalfStitch {
                     out.push(HalfStitch {
                         start: *cell,
                         first_stitch: true,
-                        first_stitch_corner: stitch_direction,
+                        first_stitch_corner: first_stitch_direction,
+                        second_stitch_corner: second_stitch_direction,
                     });
                     seen_cells.insert(cell, true);
                 }
@@ -97,7 +130,8 @@ impl HalfStitch {
                             y: cell.y,
                         },
                         first_stitch: false,
-                        first_stitch_corner: stitch_direction,
+                        first_stitch_corner: first_stitch_direction,
+                        second_stitch_corner: second_stitch_direction,
                     });
                 }
             }
@@ -175,6 +209,7 @@ mod test {
             start: GridCell { x: 0, y: 0 },
             first_stitch: true,
             first_stitch_corner: StartingStitchCorner::BottomLeft,
+            second_stitch_corner: StartingStitchCorner::BottomRight,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: 1, y: 1 });
@@ -186,6 +221,7 @@ mod test {
             start: GridCell { x: 0, y: 0 },
             first_stitch: false,
             first_stitch_corner: StartingStitchCorner::BottomLeft,
+            second_stitch_corner: StartingStitchCorner::BottomRight,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: -1, y: 1 });
@@ -197,6 +233,7 @@ mod test {
             start: GridCell { x: 1, y: 0 },
             first_stitch: false,
             first_stitch_corner: StartingStitchCorner::BottomLeft,
+            second_stitch_corner: StartingStitchCorner::BottomRight,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: 0, y: 1 });
@@ -207,6 +244,7 @@ mod test {
         let result = HalfStitch::convert_grid_cells(
             [GridCell { x: 0, y: 0 }].iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         );
         assert_eq!(
             result[0],
@@ -214,6 +252,7 @@ mod test {
                 start: GridCell { x: 0, y: 0 },
                 first_stitch: true,
                 first_stitch_corner: StartingStitchCorner::BottomLeft,
+                second_stitch_corner: StartingStitchCorner::BottomRight,
             }
         )
     }
@@ -223,6 +262,7 @@ mod test {
         let result = HalfStitch::convert_grid_cells(
             [GridCell { x: 0, y: 0 }, GridCell { x: 0, y: 0 }].iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         );
         assert_eq!(
             result,
@@ -231,11 +271,13 @@ mod test {
                     start: GridCell { x: 0, y: 0 },
                     first_stitch: true,
                     first_stitch_corner: StartingStitchCorner::BottomLeft,
+                    second_stitch_corner: StartingStitchCorner::BottomRight,
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
                     first_stitch: false,
                     first_stitch_corner: StartingStitchCorner::BottomLeft,
+                    second_stitch_corner: StartingStitchCorner::BottomRight,
                 },
             ]
         )
@@ -251,6 +293,7 @@ mod test {
             ]
             .iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         );
         assert_eq!(
             result,
@@ -259,16 +302,19 @@ mod test {
                     start: GridCell { x: 0, y: 0 },
                     first_stitch: true,
                     first_stitch_corner: StartingStitchCorner::BottomLeft,
+                    second_stitch_corner: StartingStitchCorner::BottomRight,
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
                     first_stitch: false,
                     first_stitch_corner: StartingStitchCorner::BottomLeft,
+                    second_stitch_corner: StartingStitchCorner::BottomRight,
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
                     first_stitch: true,
                     first_stitch_corner: StartingStitchCorner::BottomLeft,
+                    second_stitch_corner: StartingStitchCorner::BottomRight,
                 },
             ]
         )
@@ -281,6 +327,7 @@ mod test {
         let result = HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(
             stitches.iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         ));
         assert_eq!(_round_float(result), 1.0);
     }
@@ -292,6 +339,7 @@ mod test {
         let result = HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(
             stitches.iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         ));
         assert_eq!(_round_float(result), 1.0);
     }
@@ -307,6 +355,7 @@ mod test {
         let result = HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(
             stitches.iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         ));
         assert_eq!(_round_float(result), 2.0);
     }
@@ -322,6 +371,7 @@ mod test {
         let result = HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(
             stitches.iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         ));
         assert_eq!(_round_float(result), 2.414);
     }
@@ -337,6 +387,7 @@ mod test {
         let result = HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(
             stitches.iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         ));
         assert_eq!(_round_float(result), 2.0);
     }
@@ -348,6 +399,7 @@ mod test {
         let result = HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(
             stitches.iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         ));
         assert_eq!(_round_float(result), 1.0);
     }
@@ -359,6 +411,7 @@ mod test {
         let result = HalfStitch::_calculate_cost_float(&HalfStitch::convert_grid_cells(
             stitches.iter(),
             StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
         ));
         assert_eq!(_round_float(result), 2.236);
     }

@@ -4,7 +4,7 @@ mod symbolic_sum;
 
 use crate::grid::{GridCell, GridState};
 use crate::stitch::StartingStitchCorner;
-use iced::widget::{button, checkbox, column, container, pick_list};
+use iced::widget::{button, checkbox, column, container, pick_list, row};
 use iced::{Element, Fill, Task, Theme};
 use std::collections::{HashMap, VecDeque};
 
@@ -25,7 +25,8 @@ pub enum Message {
     Grid(grid::Message),
     ClearGrid,
     ChangeCalculationSpecificity(bool),
-    ChangeFirstStitchCorner(StartingStitchCorner),
+    ChangeBottomStitchCorner(StartingStitchCorner),
+    ChangeTopStitchCorner(StartingStitchCorner),
 }
 
 #[derive(Debug, Default)]
@@ -43,14 +44,17 @@ impl CrossStitchSolver {
             Message::ChangeCalculationSpecificity(check_box) => {
                 self.grid_state.precise_cost = check_box;
             }
-            Message::ChangeFirstStitchCorner(first_stitch_corner) => {
+            Message::ChangeBottomStitchCorner(first_stitch_corner) => {
                 self.grid_state.bottom_stitch_corner = first_stitch_corner;
+            }
+            Message::ChangeTopStitchCorner(second_stitch_corner) => {
+                self.grid_state.top_stitch_corner = second_stitch_corner;
             }
         }
         Task::none()
     }
     fn view(&self) -> Element<Message> {
-        let stitch_direction_options = [
+        let bottom_stitch_directions = [
             StartingStitchCorner::BottomLeft,
             StartingStitchCorner::BottomRight,
             StartingStitchCorner::TopLeft,
@@ -63,11 +67,21 @@ impl CrossStitchSolver {
                 .style(button::danger),
             checkbox("Precise Cost", self.grid_state.precise_cost)
                 .on_toggle(Message::ChangeCalculationSpecificity),
-            pick_list(
-                stitch_direction_options,
-                Some(&self.grid_state.bottom_stitch_corner),
-                Message::ChangeFirstStitchCorner
-            ),
+            row![
+                "Bottom Stitch Start Corner: ",
+                pick_list(
+                    bottom_stitch_directions,
+                    Some(&self.grid_state.bottom_stitch_corner),
+                    Message::ChangeBottomStitchCorner
+                ),
+                "Top Stitch Start Corner: ",
+                pick_list(
+                    self.grid_state.top_stitch_corner.get_valid_opposites(),
+                    Some(&self.grid_state.top_stitch_corner),
+                    Message::ChangeTopStitchCorner
+                ),
+            ]
+            .width(Fill),
         ]
         .height(Fill);
 

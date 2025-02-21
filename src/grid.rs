@@ -37,6 +37,9 @@ pub struct GridState {
 
     /// Where the bottom stitch starts.
     pub bottom_stitch_corner: StartingStitchCorner,
+
+    /// Where the bottom stitch starts.
+    pub top_stitch_corner: StartingStitchCorner,
 }
 
 impl Default for GridState {
@@ -49,6 +52,7 @@ impl Default for GridState {
             program_state: Default::default(),
             precise_cost: false,
             bottom_stitch_corner: Default::default(),
+            top_stitch_corner: StartingStitchCorner::default().get_valid_opposites()[0],
         }
     }
 }
@@ -262,6 +266,7 @@ impl canvas::Program<Message> for GridState {
         let stitches = HalfStitch::convert_grid_cells(
             self.program_state.selected_cells.iter(),
             self.bottom_stitch_corner,
+            self.top_stitch_corner,
         );
         let valid_sequence = if self.precise_cost {
             HalfStitch::check_valid_sequence_symbolic(&stitches)
