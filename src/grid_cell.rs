@@ -1,4 +1,5 @@
 use iced::Point;
+use std::ops::Add;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct GridCell {
@@ -52,5 +53,15 @@ impl From<GridCell> for Point {
 impl From<&GridCell> for Point {
     fn from(val: &GridCell) -> Self {
         Point::from(*val)
+    }
+}
+
+impl Add for GridCell {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
     }
 }
