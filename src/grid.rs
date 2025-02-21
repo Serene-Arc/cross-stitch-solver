@@ -1,4 +1,4 @@
-use crate::stitch::{FirstStitchCorner, HalfStitch};
+use crate::stitch::{HalfStitch, StartingStitchCorner};
 use crate::ProgramState;
 use iced::event::Status;
 use iced::mouse::Cursor;
@@ -36,7 +36,7 @@ pub struct GridState {
     pub precise_cost: bool,
 
     /// Where the bottom stitch starts.
-    pub bottom_stitch_corner: FirstStitchCorner,
+    pub bottom_stitch_corner: StartingStitchCorner,
 }
 
 impl Default for GridState {

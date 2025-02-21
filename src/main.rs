@@ -3,7 +3,7 @@ mod stitch;
 mod symbolic_sum;
 
 use crate::grid::{GridCell, GridState};
-use crate::stitch::FirstStitchCorner;
+use crate::stitch::StartingStitchCorner;
 use iced::widget::{button, checkbox, column, container, pick_list};
 use iced::{Element, Fill, Task, Theme};
 use std::collections::{HashMap, VecDeque};
@@ -25,7 +25,7 @@ pub enum Message {
     Grid(grid::Message),
     ClearGrid,
     ChangeCalculationSpecificity(bool),
-    ChangeFirstStitchCorner(FirstStitchCorner),
+    ChangeFirstStitchCorner(StartingStitchCorner),
 }
 
 #[derive(Debug, Default)]
@@ -51,10 +51,10 @@ impl CrossStitchSolver {
     }
     fn view(&self) -> Element<Message> {
         let stitch_direction_options = [
-            FirstStitchCorner::BottomLeft,
-            FirstStitchCorner::BottomRight,
-            FirstStitchCorner::TopLeft,
-            FirstStitchCorner::TopRight,
+            StartingStitchCorner::BottomLeft,
+            StartingStitchCorner::BottomRight,
+            StartingStitchCorner::TopLeft,
+            StartingStitchCorner::TopRight,
         ];
         let content = column![
             self.grid_state.view().map(Message::Grid),
