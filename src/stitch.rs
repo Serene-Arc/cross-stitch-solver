@@ -15,32 +15,25 @@ pub enum StartingStitchCorner {
 }
 
 impl StartingStitchCorner {
-    const VALID_OPPOSITES: [[StartingStitchCorner; 2]; 4] = [
-        // BottomLeft
-        [
-            StartingStitchCorner::BottomRight,
-            StartingStitchCorner::TopLeft,
-        ],
-        // BottomRight
-        [
-            StartingStitchCorner::BottomLeft,
-            StartingStitchCorner::TopRight,
-        ],
-        // TopLeft
-        [
-            StartingStitchCorner::BottomLeft,
-            StartingStitchCorner::TopRight,
-        ],
-        // TopRight
-        [
-            StartingStitchCorner::BottomRight,
-            StartingStitchCorner::TopLeft,
-        ],
-    ];
-
     pub fn get_valid_opposites(&self) -> [Self; 2] {
-        // Safety: Assuming the enum variants are sequential starting from 0
-        StartingStitchCorner::VALID_OPPOSITES[*self as usize]
+        match self {
+            StartingStitchCorner::BottomLeft => [
+                StartingStitchCorner::BottomRight,
+                StartingStitchCorner::TopLeft,
+            ],
+            StartingStitchCorner::BottomRight => [
+                StartingStitchCorner::BottomLeft,
+                StartingStitchCorner::TopRight,
+            ],
+            StartingStitchCorner::TopLeft => [
+                StartingStitchCorner::BottomLeft,
+                StartingStitchCorner::TopRight,
+            ],
+            StartingStitchCorner::TopRight => [
+                StartingStitchCorner::BottomRight,
+                StartingStitchCorner::TopLeft,
+            ],
+        }
     }
 }
 
