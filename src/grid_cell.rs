@@ -1,7 +1,7 @@
 use iced::Point;
 use std::ops::{Add, Sub};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Default)]
 pub struct GridCell {
     pub(crate) x: isize,
     pub(crate) y: isize,

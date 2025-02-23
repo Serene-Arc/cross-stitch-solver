@@ -69,7 +69,7 @@ impl fmt::Display for StartingStitchCorner {
     }
 }
 
-#[derive(PartialEq, Eq, Copy, Clone, Debug, Hash)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Hash, Default)]
 pub struct HalfStitch {
     // The start is the cell of the stitch, from the bottom left corner.
     pub start: GridCell,
