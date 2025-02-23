@@ -129,7 +129,10 @@ impl HalfStitch {
                 None => {}
                 Some(&last) => {
                     if last.get_end_location() == stitch.start {
-                        return Err((last.start, stitch.start));
+                        return Err((
+                            last.start - last.stitch_corner.get_offset_from_bottom_left(),
+                            stitch.start - stitch.stitch_corner.get_offset_from_bottom_left(),
+                        ));
                     }
                 }
             }
