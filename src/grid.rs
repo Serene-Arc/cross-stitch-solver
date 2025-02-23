@@ -52,8 +52,8 @@ impl Default for GridState {
             scaling: 2.0,
             program_state: Default::default(),
             precise_cost: false,
-            bottom_stitch_corner: Default::default(),
-            top_stitch_corner: StartingStitchCorner::default().get_possible_top_stitch_corners()[0],
+            bottom_stitch_corner: StartingStitchCorner::BottomLeft,
+            top_stitch_corner: StartingStitchCorner::BottomRight,
         }
     }
 }
