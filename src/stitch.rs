@@ -9,10 +9,10 @@ use std::fmt::Formatter;
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Hash, Default)]
 pub enum StartingStitchCorner {
     #[default]
-    BottomLeft,
-    BottomRight,
-    TopLeft,
-    TopRight,
+    BottomLeft = 0,
+    TopLeft = 1,
+    TopRight = 2,
+    BottomRight = 3,
 }
 
 impl StartingStitchCorner {
