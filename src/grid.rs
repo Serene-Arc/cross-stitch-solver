@@ -113,14 +113,12 @@ impl GridState {
             Message::Translated(translation) => {
                 self.translation = translation;
 
-                self.grid_cache.clear();
-                self.cell_cache.clear();
+                self.clear_cache();
             }
             Message::Scaled(scaling) => {
                 self.scaling = scaling;
 
-                self.grid_cache.clear();
-                self.cell_cache.clear();
+                self.clear_cache();
             }
         }
     }
