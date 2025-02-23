@@ -14,12 +14,12 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
 
     let max_x = centred_stitches
         .iter()
-        .map(|s| s.start.x)
+        .flat_map(|s| [s.start.x, s.get_end_location().x])
         .reduce(isize::max)
         .unwrap();
     let max_y = centred_stitches
         .iter()
-        .map(|s| s.start.y)
+        .flat_map(|s| [s.start.y, s.get_end_location().y])
         .reduce(isize::max)
         .unwrap();
 
