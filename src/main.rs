@@ -1,13 +1,15 @@
 mod grid;
 mod grid_cell;
 mod stitch;
+mod svg_output;
 mod symbolic_sum;
 
 use crate::grid::GridState;
-use crate::stitch::StartingStitchCorner;
+use crate::stitch::{HalfStitch, StartingStitchCorner};
 use grid_cell::GridCell;
 use iced::widget::{button, checkbox, column, container, pick_list, row};
 use iced::{Element, Fill, Task, Theme};
+use log::error;
 use std::collections::{HashMap, VecDeque};
 
 fn main() -> iced::Result {
@@ -29,6 +31,7 @@ pub enum Message {
     ChangeCalculationSpecificity(bool),
     ChangeBottomStitchCorner(StartingStitchCorner),
     ChangeTopStitchCorner(StartingStitchCorner),
+    GenerateSVG,
 }
 
 #[derive(Debug, Default)]
@@ -55,6 +58,16 @@ impl CrossStitchSolver {
             Message::ChangeTopStitchCorner(second_stitch_corner) => {
                 self.grid_state.top_stitch_corner = second_stitch_corner;
                 self.grid_state.clear_cache();
+            }
+            Message::GenerateSVG => {
+                let stitches = HalfStitch::convert_grid_cells(
+                    self.grid_state.program_state.selected_cells.iter(),
+                    self.grid_state.bottom_stitch_corner,
+                    self.grid_state.top_stitch_corner,
+                );
+                let document = svg_output::create_graphic(&stitches);
+                svg::save("stitches.svg", &document)
+                    .unwrap_or_else(|_| error!("Failed to write SVG file"));
             }
         }
         Task::none()
@@ -91,6 +104,7 @@ impl CrossStitchSolver {
             ]
             .spacing(5)
             .width(Fill),
+            button("Create SVG").on_press(Message::GenerateSVG),
         ]
         .height(Fill);
 
