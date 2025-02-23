@@ -48,9 +48,11 @@ impl CrossStitchSolver {
             }
             Message::ChangeBottomStitchCorner(first_stitch_corner) => {
                 self.grid_state.bottom_stitch_corner = first_stitch_corner;
+                self.grid_state.clear_cache();
             }
             Message::ChangeTopStitchCorner(second_stitch_corner) => {
                 self.grid_state.top_stitch_corner = second_stitch_corner;
+                self.grid_state.clear_cache();
             }
         }
         Task::none()

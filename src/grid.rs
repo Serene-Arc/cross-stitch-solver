@@ -77,9 +77,13 @@ impl GridState {
 
     /// Clear everything to return to as-new state.
     pub fn clear(&mut self) {
+        self.clear_cache();
+        self.program_state.clear();
+    }
+
+    pub fn clear_cache(&mut self) {
         self.grid_cache.clear();
         self.cell_cache.clear();
-        self.program_state.clear();
     }
 
     /// Project a given screen coordinate onto the visible region of the grid.
