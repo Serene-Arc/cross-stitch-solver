@@ -43,6 +43,7 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     document = document.add(top_stitches_group);
     document = document.add(inter_stitch_group);
 
+    // Flip the SVG since the origin is the top left corner.
     document = document.set("transform", "scale(1,-1)");
 
     document
@@ -52,6 +53,7 @@ fn draw_grid(max_x: isize, max_y: isize) -> Group {
     let mut dot_group = Group::new().set("fill", "black");
     for row in 0..=max_y {
         for col in 0..=max_x {
+            // Offset by the radius of a dot so that the dot isn't cut off.
             let cx = col as f64 * DOT_SPACING + DOT_RADIUS;
             let cy = row as f64 * DOT_SPACING + DOT_RADIUS;
 
@@ -88,6 +90,7 @@ fn draw_stitches(stitches: &[HalfStitch], colour: &str) -> Group {
     bottom_stitch_group
 }
 
+/// Draw the lines that show where the thread travels on the back of the fabric.
 fn draw_inter_stitch_movement(stitches: &[HalfStitch]) -> Group {
     let mut inter_stitch_movements = Group::new()
         .set("fill", "blue")
@@ -111,6 +114,7 @@ fn draw_inter_stitch_movement(stitches: &[HalfStitch]) -> Group {
     inter_stitch_movements
 }
 
+/// Move the stitches so that the bottommost and leftmost ones are at the origin.
 fn re_centre_stitches(stitches: &[HalfStitch]) -> Vec<HalfStitch> {
     let leftmost_x = stitches
         .iter()
