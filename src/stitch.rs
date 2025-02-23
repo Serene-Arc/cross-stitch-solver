@@ -3,7 +3,7 @@ use crate::symbolic_sum::SymbolicSum;
 use iced::widget::canvas::Path;
 use iced::Point;
 use num_derive::{FromPrimitive, ToPrimitive};
-use num_traits::FromPrimitive;
+use num_traits::{FromPrimitive, ToPrimitive};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
@@ -21,24 +21,12 @@ impl StartingStitchCorner {
     /// Get the corners where the alternate stitch can start.
     /// Given a bottom stitch's starting corner, there are two options to make a cross.
     pub fn get_possible_top_stitch_corners(&self) -> [Self; 2] {
-        match self {
-            StartingStitchCorner::BottomLeft => [
-                StartingStitchCorner::BottomRight,
-                StartingStitchCorner::TopLeft,
-            ],
-            StartingStitchCorner::BottomRight => [
-                StartingStitchCorner::BottomLeft,
-                StartingStitchCorner::TopRight,
-            ],
-            StartingStitchCorner::TopLeft => [
-                StartingStitchCorner::BottomLeft,
-                StartingStitchCorner::TopRight,
-            ],
-            StartingStitchCorner::TopRight => [
-                StartingStitchCorner::BottomRight,
-                StartingStitchCorner::TopLeft,
-            ],
-        }
+        let first_option = (ToPrimitive::to_u8(self).unwrap() + 1) % 4;
+        let second_option = (ToPrimitive::to_u8(self).unwrap() + 3) % 4;
+        [
+            FromPrimitive::from_u8(first_option).unwrap(),
+            FromPrimitive::from_u8(second_option).unwrap(),
+        ]
     }
 
     pub fn get_offset_from_bottom_left(&self) -> GridCell {
@@ -386,5 +374,17 @@ mod test {
     fn test_get_opposite_corner_from_bottom_right() {
         let result = StartingStitchCorner::BottomRight.get_opposite_corner();
         assert_eq!(result, StartingStitchCorner::TopLeft);
+    }
+
+    #[test]
+    fn test_get_alternate_corners_from_bottom_left() {
+        let result = StartingStitchCorner::BottomLeft.get_possible_top_stitch_corners();
+        assert_eq!(
+            result,
+            [
+                StartingStitchCorner::TopLeft,
+                StartingStitchCorner::BottomRight
+            ]
+        );
     }
 }
