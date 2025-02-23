@@ -6,4 +6,6 @@ edition = "2021"
 [dependencies]
 iced = { version = "0.13.1", features = ["canvas", "tokio", "debug", "advanced"] }
 log = "0.4.25"
+num-derive = "0.4.2"
+num-traits = "0.2.19"
 prime_factorization = "1.0.5"

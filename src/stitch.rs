@@ -2,11 +2,13 @@ use crate::grid_cell::GridCell;
 use crate::symbolic_sum::SymbolicSum;
 use iced::widget::canvas::Path;
 use iced::Point;
+use num_derive::{FromPrimitive, ToPrimitive};
+use num_traits::FromPrimitive;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash, Default, FromPrimitive, ToPrimitive)]
 pub enum StartingStitchCorner {
     #[default]
     BottomLeft = 0,
@@ -49,12 +51,8 @@ impl StartingStitchCorner {
     }
 
     pub fn get_opposite_corner(&self) -> StartingStitchCorner {
-        match self {
-            StartingStitchCorner::BottomLeft => StartingStitchCorner::TopRight,
-            StartingStitchCorner::BottomRight => StartingStitchCorner::TopLeft,
-            StartingStitchCorner::TopLeft => StartingStitchCorner::BottomRight,
-            StartingStitchCorner::TopRight => StartingStitchCorner::BottomLeft,
-        }
+        let opposite: Option<StartingStitchCorner> = FromPrimitive::from_u8((*self as u8 + 2) % 4);
+        opposite.unwrap_or_else(|| panic!("Not a valid stitch corner"))
     }
 }
 
@@ -376,5 +374,17 @@ mod test {
             StartingStitchCorner::BottomRight,
         ));
         assert_eq!(_round_float(result), 2.236);
+    }
+
+    #[test]
+    fn test_get_opposite_corner_from_bottom_left() {
+        let result = StartingStitchCorner::BottomLeft.get_opposite_corner();
+        assert_eq!(result, StartingStitchCorner::TopRight);
+    }
+
+    #[test]
+    fn test_get_opposite_corner_from_bottom_right() {
+        let result = StartingStitchCorner::BottomRight.get_opposite_corner();
+        assert_eq!(result, StartingStitchCorner::TopLeft);
     }
 }
