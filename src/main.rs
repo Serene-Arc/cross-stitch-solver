@@ -89,6 +89,7 @@ impl CrossStitchSolver {
                     Message::ChangeTopStitchCorner
                 ),
             ]
+            .spacing(5)
             .width(Fill),
         ]
         .height(Fill);
