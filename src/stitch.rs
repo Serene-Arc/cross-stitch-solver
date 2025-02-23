@@ -89,7 +89,7 @@ impl HalfStitch {
             match seen_cells.contains_key(cell) {
                 false => {
                     out.push(HalfStitch {
-                        start: *cell,
+                        start: *cell + first_stitch_direction.get_offset_from_bottom_left(),
                         stitch_corner: first_stitch_direction,
                     });
                     seen_cells.insert(cell, true);
