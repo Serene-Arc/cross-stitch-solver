@@ -26,23 +26,15 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
         .reduce(isize::max)
         .unwrap();
 
-    let mut document = Document::new().set(
-        "viewBox",
-        (
-            0,
-            0,
-            (max_x as f64) * DOT_SPACING + (2.0 * DOT_RADIUS),
-            (max_y as f64) * DOT_SPACING + (2.0 * DOT_RADIUS),
-        ),
-    );
+    let view_width = (max_x as f64) * DOT_SPACING + (2.0 * DOT_RADIUS);
+    let view_height = (max_y as f64) * DOT_SPACING + (2.0 * DOT_RADIUS);
 
-    let dot_group = draw_grid(max_x, max_y);
-    let bottom_stitches_group = draw_stitches(&bottom_stitches, "green", 1);
-    let inter_stitch_group = draw_inter_stitch_movement(&centred_stitches, 2);
-    let top_stitches_group = draw_stitches(&top_stitches, "red", 3);
+    let mut document = Document::new().set("viewBox", (0, 0, view_width, view_height));
 
-    // Flip the SVG since the origin is the top left corner.
-    document = document.set("transform", "scale(1,-1)");
+    let dot_group = draw_grid(max_x, max_y, view_height);
+    let bottom_stitches_group = draw_stitches(&bottom_stitches, "green", 1, view_height);
+    let inter_stitch_group = draw_inter_stitch_movement(&centred_stitches, 2, view_height);
+    let top_stitches_group = draw_stitches(&top_stitches, "red", 3, view_height);
 
     document = document.add(dot_group);
     document = document.add(bottom_stitches_group);
@@ -52,13 +44,13 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     document
 }
 
-fn draw_grid(max_x: isize, max_y: isize) -> Group {
+fn draw_grid(max_x: isize, max_y: isize, view_height: f64) -> Group {
     let mut dot_group = Group::new().set("fill", "black");
     for row in 0..=max_y {
         for col in 0..=max_x {
             // Offset by the radius of a dot so that the dot isn't cut off.
             let cx = col as f64 * DOT_SPACING + DOT_RADIUS;
-            let cy = row as f64 * DOT_SPACING + DOT_RADIUS;
+            let cy = view_height - (row as f64 * DOT_SPACING + DOT_RADIUS);
 
             let circle = Circle::new()
                 .set("cx", cx)
@@ -71,21 +63,25 @@ fn draw_grid(max_x: isize, max_y: isize) -> Group {
     dot_group
 }
 
-fn draw_stitches(stitches: &[HalfStitch], colour: &str, starting_number: usize) -> Group {
+fn draw_stitches(
+    stitches: &[HalfStitch],
+    colour: &str,
+    starting_number: usize,
+    view_height: f64,
+) -> Group {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 1));
     let mut stitch_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
+        let y_1 = view_height - (stitch.start.y as f64 * DOT_SPACING + DOT_RADIUS);
+        let y_2 = view_height - (stitch.get_end_location().y as f64 * DOT_SPACING + DOT_RADIUS);
         let line = svg::node::element::Line::new()
             .set("x1", stitch.start.x as f64 * DOT_SPACING + DOT_RADIUS)
-            .set("y1", stitch.start.y as f64 * DOT_SPACING + DOT_RADIUS)
+            .set("y1", y_1)
             .set(
                 "x2",
                 stitch.get_end_location().x as f64 * DOT_SPACING + DOT_RADIUS,
             )
-            .set(
-                "y2",
-                stitch.get_end_location().y as f64 * DOT_SPACING + DOT_RADIUS,
-            )
+            .set("y2", y_2)
             .set("stroke-width", LINE_WIDTH);
         stitch_group = stitch_group.add(line);
         stitch_group = stitch_group.add(add_sequence_number(
@@ -94,6 +90,7 @@ fn draw_stitches(stitches: &[HalfStitch], colour: &str, starting_number: usize) 
             stitch.start,
             stitch.get_end_location(),
             (0.0, 0.0),
+            view_height,
         ));
     }
     stitch_group
@@ -105,26 +102,29 @@ fn add_sequence_number(
     first_point: GridCell,
     second_point: GridCell,
     text_offset: (f64, f64),
+    view_height: f64,
 ) -> Text {
     // First, find the direction that the text is supposed to go.
     // We want the text to be near the beginning of the stroke,
     // but in the direction the line is going.
-    let (x_pos, y_pos) = calculate_text_coordinates(first_point, second_point);
+    let (x_pos, y_pos) = calculate_text_coordinates(first_point, second_point, view_height);
 
-    // We need to use the negative of the y coordinate due to the flip.
     Text::new(format!("{}", number))
         .set("x", x_pos + text_offset.0)
-        .set("y", -(y_pos + text_offset.1))
+        .set("y", y_pos + text_offset.1)
         .set("color", "black")
         .set("fill", colour)
-        .set("transform", "scale(1,-1)")
         .set("font-size", format!("{}", FONT_SIZE))
         .set("font", "monospace")
         .set("stroke", "0.1")
         .set("paint-order", "stroke fill")
 }
 
-fn calculate_text_coordinates(first_point: GridCell, second_point: GridCell) -> (f64, f64) {
+fn calculate_text_coordinates(
+    first_point: GridCell,
+    second_point: GridCell,
+    view_height: f64,
+) -> (f64, f64) {
     let horizontal_direction = second_point.x - first_point.x;
     let vertical_direction = second_point.y - first_point.y;
     let x_pos = (first_point.x as f64 + (0.1 * horizontal_direction as f64)) * DOT_SPACING
@@ -136,25 +136,32 @@ fn calculate_text_coordinates(first_point: GridCell, second_point: GridCell) -> 
             5.0
         };
 
-    let y_pos = (first_point.y as f64 + (0.1 * (second_point.y - first_point.y) as f64))
+    let unadjusted_y_pos = (first_point.y as f64 + (0.1 * (second_point.y - first_point.y) as f64))
         * DOT_SPACING
         + (DOT_RADIUS * vertical_direction as f64);
+    let y_pos = view_height - unadjusted_y_pos;
     (x_pos, y_pos)
 }
 
 /// Draw the lines that show where the thread travels on the back of the fabric.
-fn draw_inter_stitch_movement(stitches: &[HalfStitch], starting_number: usize) -> Group {
+fn draw_inter_stitch_movement(
+    stitches: &[HalfStitch],
+    starting_number: usize,
+    view_height: f64,
+) -> Group {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 1));
     let mut seen_movement_pairs: HashSet<(GridCell, GridCell)> = HashSet::new();
     let mut inter_stitch_movements = Group::new().set("fill", "blue").set("stroke", "blue");
     for stitch in stitches.windows(2) {
         let first_point = stitch[0].get_end_location();
         let second_point = stitch[1].start;
+        let y1 = view_height - (first_point.y as f64 * DOT_SPACING + DOT_RADIUS);
+        let y2 = view_height - (second_point.y as f64 * DOT_SPACING + DOT_RADIUS);
         let line = svg::node::element::Line::new()
             .set("x1", first_point.x as f64 * DOT_SPACING + DOT_RADIUS)
-            .set("y1", first_point.y as f64 * DOT_SPACING + DOT_RADIUS)
+            .set("y1", y1)
             .set("x2", second_point.x as f64 * DOT_SPACING + DOT_RADIUS)
-            .set("y2", second_point.y as f64 * DOT_SPACING + DOT_RADIUS)
+            .set("y2", y2)
             .set("stroke-width", LINE_WIDTH)
             .set("stroke-dasharray", "10,10");
         inter_stitch_movements = inter_stitch_movements.add(line);
@@ -169,6 +176,7 @@ fn draw_inter_stitch_movement(stitches: &[HalfStitch], starting_number: usize) -
             first_point,
             second_point,
             offset,
+            view_height,
         ));
 
         seen_movement_pairs.insert((first_point, second_point));
@@ -204,6 +212,8 @@ fn re_centre_stitches(stitches: &[HalfStitch]) -> Vec<HalfStitch> {
 mod tests {
     use super::*;
     use crate::stitch::StartingStitchCorner;
+
+    const SINGLE_ROW_VIEW_HEIGHT: f64 = DOT_SPACING + 2.0 * DOT_RADIUS;
 
     #[test]
     fn test_centre_stitches_no_work() {
@@ -370,27 +380,39 @@ mod tests {
             start: GridCell::new(0, 0),
             stitch_corner: StartingStitchCorner::BottomLeft,
         };
-        let result = calculate_text_coordinates(test_stitch.start, test_stitch.get_end_location());
+        let result = calculate_text_coordinates(
+            test_stitch.start,
+            test_stitch.get_end_location(),
+            SINGLE_ROW_VIEW_HEIGHT,
+        );
         let expected_x = 0.1 * DOT_SPACING + 50.0 + DOT_RADIUS;
-        let expected_y = 2.0 * DOT_RADIUS;
+        let expected_y = SINGLE_ROW_VIEW_HEIGHT - (2.0 * DOT_RADIUS);
         assert_eq!(result.0, expected_x);
         assert_eq!(result.1, expected_y);
     }
 
     #[test]
     fn test_calculate_text_position_stitch_vertical_top_to_bottom() {
-        let result = calculate_text_coordinates(GridCell::new(0, 1), GridCell::new(0, 0));
+        let result = calculate_text_coordinates(
+            GridCell::new(0, 1),
+            GridCell::new(0, 0),
+            SINGLE_ROW_VIEW_HEIGHT,
+        );
         let expected_x = DOT_RADIUS + 5.0;
-        let expected_y = DOT_SPACING - (0.1 * DOT_SPACING) - DOT_RADIUS;
+        let expected_y = SINGLE_ROW_VIEW_HEIGHT - (DOT_SPACING - (0.1 * DOT_SPACING) - DOT_RADIUS);
         assert_eq!(result.0, expected_x);
         assert_eq!(result.1, expected_y);
     }
 
     #[test]
     fn test_calculate_text_position_stitch_vertical_bottom_to_top() {
-        let result = calculate_text_coordinates(GridCell::new(0, 0), GridCell::new(0, 1));
+        let result = calculate_text_coordinates(
+            GridCell::new(0, 0),
+            GridCell::new(0, 1),
+            SINGLE_ROW_VIEW_HEIGHT,
+        );
         let expected_x = DOT_RADIUS + 5.0;
-        let expected_y = 2.0 * DOT_RADIUS;
+        let expected_y = SINGLE_ROW_VIEW_HEIGHT - (2.0 * DOT_RADIUS);
         assert_eq!(result.0, expected_x);
         assert_eq!(result.1, expected_y);
     }
