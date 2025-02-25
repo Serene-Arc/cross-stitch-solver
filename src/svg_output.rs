@@ -1,10 +1,12 @@
 use crate::grid_cell::GridCell;
 use crate::stitch::HalfStitch;
-use svg::node::element::{Circle, Group};
-use svg::{Document, Node};
+use svg::node::element::{Circle, Group, Text};
+use svg::Document;
 
-const DOT_SPACING: f64 = 50.0;
-const DOT_RADIUS: f64 = 5.0;
+const DOT_SPACING: f64 = 500.0;
+const DOT_RADIUS: f64 = DOT_SPACING / 10.0;
+const LINE_WIDTH: f64 = DOT_RADIUS / 5.0;
+const FONT_SIZE: isize = DOT_RADIUS as isize;
 
 pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     let centred_stitches = re_centre_stitches(stitches);
@@ -28,23 +30,23 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
         (
             0,
             0,
-            ((max_x + 1) as f64) * DOT_SPACING + (2.0 * DOT_RADIUS),
-            ((max_y + 1) as f64) * DOT_SPACING + (2.0 * DOT_RADIUS),
+            (max_x as f64) * DOT_SPACING + (2.0 * DOT_RADIUS),
+            (max_y as f64) * DOT_SPACING + (2.0 * DOT_RADIUS),
         ),
     );
 
     let dot_group = draw_grid(max_x, max_y);
-    let bottom_stitches_group = draw_stitches(&bottom_stitches, "green");
-    let top_stitches_group = draw_stitches(&top_stitches, "red");
-    let inter_stitch_group = draw_inter_stitch_movement(&centred_stitches);
+    let bottom_stitches_group = draw_stitches(&bottom_stitches, "green", 1);
+    let inter_stitch_group = draw_inter_stitch_movement(&centred_stitches, 2);
+    let top_stitches_group = draw_stitches(&top_stitches, "red", 3);
+
+    // Flip the SVG since the origin is the top left corner.
+    document = document.set("transform", "scale(1,-1)");
 
     document = document.add(dot_group);
     document = document.add(bottom_stitches_group);
     document = document.add(top_stitches_group);
     document = document.add(inter_stitch_group);
-
-    // Flip the SVG since the origin is the top left corner.
-    document = document.set("transform", "scale(1,-1)");
 
     document
 }
@@ -68,11 +70,9 @@ fn draw_grid(max_x: isize, max_y: isize) -> Group {
     dot_group
 }
 
-fn draw_stitches(stitches: &[HalfStitch], colour: &str) -> Group {
-    let mut bottom_stitch_group = Group::new()
-        .set("fill", colour)
-        .set("stroke-width", 1)
-        .set("stroke", colour);
+fn draw_stitches(stitches: &[HalfStitch], colour: &str, starting_number: usize) -> Group {
+    let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 1));
+    let mut bottom_stitch_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
         let line = svg::node::element::Line::new()
             .set("x1", stitch.start.x as f64 * DOT_SPACING + DOT_RADIUS)
@@ -84,32 +84,81 @@ fn draw_stitches(stitches: &[HalfStitch], colour: &str) -> Group {
             .set(
                 "y2",
                 stitch.get_end_location().y as f64 * DOT_SPACING + DOT_RADIUS,
-            );
-        bottom_stitch_group.append(line);
+            )
+            .set("stroke-width", LINE_WIDTH);
+        bottom_stitch_group = bottom_stitch_group.add(line);
+        bottom_stitch_group = bottom_stitch_group.add(add_sequence_number(
+            number_sequence.next().unwrap(),
+            colour,
+            stitch.start,
+            stitch.get_end_location(),
+        ));
     }
     bottom_stitch_group
 }
 
+fn add_sequence_number(
+    number: usize,
+    colour: &str,
+    first_point: GridCell,
+    second_point: GridCell,
+) -> Text {
+    // First, find the direction that the text is supposed to go.
+    // We want the text to be near the beginning of the stroke,
+    // but in the direction the line is going.
+    let (x_pos, y_pos) = calculate_text_coordinates(first_point, second_point);
+
+    // We need to use the negative of the y coordinate due to the flip.
+    Text::new(format!("{}", number))
+        .set("x", x_pos)
+        .set("y", -y_pos)
+        .set("color", "black")
+        .set("fill", colour)
+        .set("transform", "scale(1,-1)")
+        .set("font-size", format!("{}", FONT_SIZE))
+        .set("stroke", "0.1")
+        .set("paint-order", "stroke fill")
+}
+
+fn calculate_text_coordinates(first_point: GridCell, second_point: GridCell) -> (f64, f64) {
+    let horizontal_direction = second_point.x - first_point.x;
+    let vertical_direction = second_point.y - first_point.y;
+    let x_pos = (first_point.x as f64 + (0.1 * horizontal_direction as f64)) * DOT_SPACING
+        + DOT_RADIUS
+        // Add offset to compensate for the text being drawn from the top left.
+        + if horizontal_direction > 0 {
+            FONT_SIZE as f64
+        } else {
+            5.0
+        };
+
+    let y_pos = (first_point.y as f64 + (0.1 * (second_point.y - first_point.y) as f64))
+        * DOT_SPACING
+        + (DOT_RADIUS * vertical_direction as f64);
+    (x_pos, y_pos)
+}
+
 /// Draw the lines that show where the thread travels on the back of the fabric.
-fn draw_inter_stitch_movement(stitches: &[HalfStitch]) -> Group {
-    let mut inter_stitch_movements = Group::new()
-        .set("fill", "blue")
-        .set("stroke-width", 1)
-        .set("stroke", "blue")
-        .set("stroke-dasharray", "10,10");
+fn draw_inter_stitch_movement(stitches: &[HalfStitch], starting_number: usize) -> Group {
+    let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 1));
+    let mut inter_stitch_movements = Group::new().set("fill", "blue").set("stroke", "blue");
     for stitch in stitches.windows(2) {
+        let first_point = stitch[0].get_end_location();
+        let second_point = stitch[1].start;
         let line = svg::node::element::Line::new()
-            .set(
-                "x1",
-                stitch[0].get_end_location().x as f64 * DOT_SPACING + DOT_RADIUS,
-            )
-            .set(
-                "y1",
-                stitch[0].get_end_location().y as f64 * DOT_SPACING + DOT_RADIUS,
-            )
-            .set("x2", stitch[1].start.x as f64 * DOT_SPACING + DOT_RADIUS)
-            .set("y2", stitch[1].start.y as f64 * DOT_SPACING + DOT_RADIUS);
+            .set("x1", first_point.x as f64 * DOT_SPACING + DOT_RADIUS)
+            .set("y1", first_point.y as f64 * DOT_SPACING + DOT_RADIUS)
+            .set("x2", second_point.x as f64 * DOT_SPACING + DOT_RADIUS)
+            .set("y2", second_point.y as f64 * DOT_SPACING + DOT_RADIUS)
+            .set("stroke-width", LINE_WIDTH)
+            .set("stroke-dasharray", "10,10");
         inter_stitch_movements = inter_stitch_movements.add(line);
+        inter_stitch_movements = inter_stitch_movements.add(add_sequence_number(
+            number_sequence.next().unwrap(),
+            "blue",
+            first_point,
+            second_point,
+        ));
     }
     inter_stitch_movements
 }
@@ -284,5 +333,36 @@ mod tests {
         ];
         let document = create_graphic(&test_stitches);
         svg::save("stitches.svg", &document).unwrap()
+    }
+
+    #[test]
+    fn test_calculate_text_position_stitch_bottom_left_to_top_right() {
+        let test_stitch = HalfStitch {
+            start: GridCell::new(0, 0),
+            stitch_corner: StartingStitchCorner::BottomLeft,
+        };
+        let result = calculate_text_coordinates(test_stitch.start, test_stitch.get_end_location());
+        let expected_x = 0.1 * DOT_SPACING + 50.0 + DOT_RADIUS;
+        let expected_y = 2.0 * DOT_RADIUS;
+        assert_eq!(result.0, expected_x);
+        assert_eq!(result.1, expected_y);
+    }
+
+    #[test]
+    fn test_calculate_text_position_stitch_vertical_top_to_bottom() {
+        let result = calculate_text_coordinates(GridCell::new(0, 1), GridCell::new(0, 0));
+        let expected_x = DOT_RADIUS + 5.0;
+        let expected_y = DOT_SPACING - (0.1 * DOT_SPACING) - DOT_RADIUS;
+        assert_eq!(result.0, expected_x);
+        assert_eq!(result.1, expected_y);
+    }
+
+    #[test]
+    fn test_calculate_text_position_stitch_vertical_bottom_to_top() {
+        let result = calculate_text_coordinates(GridCell::new(0, 0), GridCell::new(0, 1));
+        let expected_x = DOT_RADIUS + 5.0;
+        let expected_y = 2.0 * DOT_RADIUS;
+        assert_eq!(result.0, expected_x);
+        assert_eq!(result.1, expected_y);
     }
 }
