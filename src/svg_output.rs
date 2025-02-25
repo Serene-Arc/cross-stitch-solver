@@ -73,7 +73,7 @@ fn draw_grid(max_x: isize, max_y: isize) -> Group {
 
 fn draw_stitches(stitches: &[HalfStitch], colour: &str, starting_number: usize) -> Group {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 1));
-    let mut bottom_stitch_group = Group::new().set("fill", colour).set("stroke", colour);
+    let mut stitch_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
         let line = svg::node::element::Line::new()
             .set("x1", stitch.start.x as f64 * DOT_SPACING + DOT_RADIUS)
@@ -87,8 +87,8 @@ fn draw_stitches(stitches: &[HalfStitch], colour: &str, starting_number: usize) 
                 stitch.get_end_location().y as f64 * DOT_SPACING + DOT_RADIUS,
             )
             .set("stroke-width", LINE_WIDTH);
-        bottom_stitch_group = bottom_stitch_group.add(line);
-        bottom_stitch_group = bottom_stitch_group.add(add_sequence_number(
+        stitch_group = stitch_group.add(line);
+        stitch_group = stitch_group.add(add_sequence_number(
             number_sequence.next().unwrap(),
             colour,
             stitch.start,
@@ -96,7 +96,7 @@ fn draw_stitches(stitches: &[HalfStitch], colour: &str, starting_number: usize) 
             (0.0, 0.0),
         ));
     }
-    bottom_stitch_group
+    stitch_group
 }
 
 fn add_sequence_number(
