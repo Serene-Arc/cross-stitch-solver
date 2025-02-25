@@ -317,6 +317,22 @@ mod tests {
     }
 
     #[test]
+    fn test_make_svg_and_write_single_stitch() {
+        let test_stitches = vec![
+            HalfStitch {
+                start: GridCell::new(0, 0),
+                stitch_corner: StartingStitchCorner::BottomLeft,
+            },
+            HalfStitch {
+                start: GridCell::new(1, 0),
+                stitch_corner: StartingStitchCorner::BottomRight,
+            },
+        ];
+        let document = create_graphic(&test_stitches);
+        svg::save("stitches.svg", &document).unwrap()
+    }
+
+    #[test]
     fn test_make_svg_and_write_multiple_stitches() {
         let test_stitches = vec![
             HalfStitch {
