@@ -1,7 +1,7 @@
 use crate::grid_cell::GridCell;
 use crate::stitch::HalfStitch;
 use std::collections::HashSet;
-use svg::node::element::{Circle, Group, Text};
+use svg::node::element::{Circle, Definitions, Group, Marker, Path, Text};
 use svg::Document;
 
 const DOT_SPACING: f64 = 500.0;
@@ -30,6 +30,12 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     let view_height = (max_y as f64) * DOT_SPACING + (2.0 * DOT_RADIUS);
 
     let mut document = Document::new().set("viewBox", (0, 0, view_width, view_height));
+
+    let mut defs = Definitions::new();
+    defs = defs.add(create_arrow_marker("arrow-green", "green"));
+    defs = defs.add(create_arrow_marker("arrow-red", "red"));
+    defs = defs.add(create_arrow_marker("arrow-blue", "blue"));
+    document = document.add(defs);
 
     let dot_group = draw_grid(max_x, max_y, view_height);
     let bottom_stitches_group = draw_stitches(&bottom_stitches, "green", 1, view_height);
@@ -87,7 +93,8 @@ fn draw_stitches(
                 stitch.get_end_location().x as f64 * DOT_SPACING + DOT_RADIUS,
             )
             .set("y2", y_2)
-            .set("stroke-width", LINE_WIDTH);
+            .set("stroke-width", LINE_WIDTH)
+            .set("marker-end", format!("url(#arrow-{})", colour));
         stitch_group = stitch_group.add(line);
         stitch_group = stitch_group.add(add_sequence_number(
             number_sequence.next().unwrap(),
@@ -99,6 +106,22 @@ fn draw_stitches(
         ));
     }
     stitch_group
+}
+
+fn create_arrow_marker(id: &str, colour: &str) -> Marker {
+    Marker::new()
+        .set("id", id)
+        .set("viewBox", "0 0 10 10")
+        .set("refX", 3) // Position the arrowhead at the end of the line
+        .set("refY", 3)
+        .set("markerWidth", 6)
+        .set("markerHeight", 6)
+        .set("orient", "auto-start-reverse") // Automatically orient the arrowhead
+        .add(
+            Path::new()
+                .set("d", "M 0 0 L 6 3 L 0 6 z")
+                .set("fill", colour),
+        )
 }
 
 fn add_sequence_number(
@@ -168,7 +191,8 @@ fn draw_inter_stitch_movement(
             .set("x2", second_point.x as f64 * DOT_SPACING + DOT_RADIUS)
             .set("y2", y2)
             .set("stroke-width", LINE_WIDTH)
-            .set("stroke-dasharray", "10,10");
+            .set("stroke-dasharray", "10,10")
+            .set("marker-end", format!("url(#arrow-{})", "blue"));
         inter_stitch_movements = inter_stitch_movements.add(line);
         let offset = if !seen_movement_pairs.contains(&(first_point, second_point)) {
             (0.0, 0.0)
