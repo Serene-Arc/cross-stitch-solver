@@ -1,5 +1,6 @@
 use crate::grid_cell::GridCell;
 use crate::stitch::HalfStitch;
+use std::collections::HashSet;
 use svg::node::element::{Circle, Group, Text};
 use svg::Document;
 
@@ -92,6 +93,7 @@ fn draw_stitches(stitches: &[HalfStitch], colour: &str, starting_number: usize) 
             colour,
             stitch.start,
             stitch.get_end_location(),
+            (0.0, 0.0),
         ));
     }
     bottom_stitch_group
@@ -102,6 +104,7 @@ fn add_sequence_number(
     colour: &str,
     first_point: GridCell,
     second_point: GridCell,
+    text_offset: (f64, f64),
 ) -> Text {
     // First, find the direction that the text is supposed to go.
     // We want the text to be near the beginning of the stroke,
@@ -110,12 +113,13 @@ fn add_sequence_number(
 
     // We need to use the negative of the y coordinate due to the flip.
     Text::new(format!("{}", number))
-        .set("x", x_pos)
-        .set("y", -y_pos)
+        .set("x", x_pos + text_offset.0)
+        .set("y", -(y_pos + text_offset.1))
         .set("color", "black")
         .set("fill", colour)
         .set("transform", "scale(1,-1)")
         .set("font-size", format!("{}", FONT_SIZE))
+        .set("font", "monospace")
         .set("stroke", "0.1")
         .set("paint-order", "stroke fill")
 }
@@ -141,6 +145,7 @@ fn calculate_text_coordinates(first_point: GridCell, second_point: GridCell) -> 
 /// Draw the lines that show where the thread travels on the back of the fabric.
 fn draw_inter_stitch_movement(stitches: &[HalfStitch], starting_number: usize) -> Group {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 1));
+    let mut seen_movement_pairs: HashSet<(GridCell, GridCell)> = HashSet::new();
     let mut inter_stitch_movements = Group::new().set("fill", "blue").set("stroke", "blue");
     for stitch in stitches.windows(2) {
         let first_point = stitch[0].get_end_location();
@@ -153,12 +158,20 @@ fn draw_inter_stitch_movement(stitches: &[HalfStitch], starting_number: usize) -
             .set("stroke-width", LINE_WIDTH)
             .set("stroke-dasharray", "10,10");
         inter_stitch_movements = inter_stitch_movements.add(line);
+        let offset = if !seen_movement_pairs.contains(&(first_point, second_point)) {
+            (0.0, 0.0)
+        } else {
+            (0.0, -FONT_SIZE as f64)
+        };
         inter_stitch_movements = inter_stitch_movements.add(add_sequence_number(
             number_sequence.next().unwrap(),
             "blue",
             first_point,
             second_point,
+            offset,
         ));
+
+        seen_movement_pairs.insert((first_point, second_point));
     }
     inter_stitch_movements
 }
