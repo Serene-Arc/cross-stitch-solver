@@ -1,7 +1,7 @@
 use crate::grid_cell::GridCell;
 use crate::stitch::HalfStitch;
 use std::collections::HashSet;
-use svg::node::element::{Circle, Definitions, Group, Marker, Mask, Path, Text};
+use svg::node::element::{Circle, Definitions, Group, Line, Marker, Mask, Path, Text};
 use svg::{Document, Node};
 
 const DOT_SPACING: f64 = 500.0;
@@ -116,17 +116,7 @@ fn draw_stitches(
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
     let mut stitch_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
-        let y_1 = view_height - (stitch.start.y as f64 * DOT_SPACING + DOT_RADIUS);
-        let y_2 = view_height - (stitch.get_end_location().y as f64 * DOT_SPACING + DOT_RADIUS);
-        let mut line = svg::node::element::Line::new()
-            .set("x1", stitch.start.x as f64 * DOT_SPACING + DOT_RADIUS)
-            .set("y1", y_1)
-            .set(
-                "x2",
-                stitch.get_end_location().x as f64 * DOT_SPACING + DOT_RADIUS,
-            )
-            .set("y2", y_2)
-            .set("stroke-width", LINE_WIDTH)
+        let mut line = _draw_line(view_height, stitch.start, stitch.get_end_location())
             .set("marker-end", format!("url(#arrow-{})", colour));
         if starting_number == 1 {
             line = line.set("mask", "url(#intersection-mask)");
@@ -142,6 +132,17 @@ fn draw_stitches(
         ));
     }
     stitch_group
+}
+
+fn _draw_line(view_height: f64, first_point: GridCell, second_point: GridCell) -> Line {
+    let y_1 = view_height - (first_point.y as f64 * DOT_SPACING + DOT_RADIUS);
+    let y_2 = view_height - (second_point.y as f64 * DOT_SPACING + DOT_RADIUS);
+    Line::new()
+        .set("x1", first_point.x as f64 * DOT_SPACING + DOT_RADIUS)
+        .set("y1", y_1)
+        .set("x2", second_point.x as f64 * DOT_SPACING + DOT_RADIUS)
+        .set("y2", y_2)
+        .set("stroke-width", LINE_WIDTH)
 }
 
 fn create_arrow_marker(id: &str, colour: &str) -> Marker {
@@ -219,14 +220,7 @@ fn draw_inter_stitch_movement(
     for stitch in stitches.windows(2) {
         let first_point = stitch[0].get_end_location();
         let second_point = stitch[1].start;
-        let y1 = view_height - (first_point.y as f64 * DOT_SPACING + DOT_RADIUS);
-        let y2 = view_height - (second_point.y as f64 * DOT_SPACING + DOT_RADIUS);
-        let line = svg::node::element::Line::new()
-            .set("x1", first_point.x as f64 * DOT_SPACING + DOT_RADIUS)
-            .set("y1", y1)
-            .set("x2", second_point.x as f64 * DOT_SPACING + DOT_RADIUS)
-            .set("y2", y2)
-            .set("stroke-width", LINE_WIDTH)
+        let line = _draw_line(view_height, first_point, second_point)
             .set("stroke-dasharray", "10,10")
             .set("marker-end", format!("url(#arrow-{})", "green"));
         inter_stitch_movements = inter_stitch_movements.add(line);
