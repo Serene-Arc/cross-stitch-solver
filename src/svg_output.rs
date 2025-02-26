@@ -39,7 +39,7 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     document = document.add(defs);
 
     let dot_group = draw_grid(max_x, max_y, view_height);
-    let bottom_stitches_group = draw_stitches(&bottom_stitches, "green", 1, view_height);
+    let bottom_stitches_group = draw_stitches(&bottom_stitches, "blue", 1, view_height);
     let inter_stitch_group = draw_inter_stitch_movement(&centred_stitches, 2, view_height);
     let top_stitches_group = draw_stitches(
         &top_stitches,
@@ -215,7 +215,7 @@ fn draw_inter_stitch_movement(
 ) -> Group {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
     let mut seen_movement_pairs: HashSet<(GridCell, GridCell)> = HashSet::new();
-    let mut inter_stitch_movements = Group::new().set("fill", "blue").set("stroke", "blue");
+    let mut inter_stitch_movements = Group::new().set("fill", "blue").set("stroke", "green");
     for stitch in stitches.windows(2) {
         let first_point = stitch[0].get_end_location();
         let second_point = stitch[1].start;
@@ -228,7 +228,7 @@ fn draw_inter_stitch_movement(
             .set("y2", y2)
             .set("stroke-width", LINE_WIDTH)
             .set("stroke-dasharray", "10,10")
-            .set("marker-end", format!("url(#arrow-{})", "blue"));
+            .set("marker-end", format!("url(#arrow-{})", "green"));
         inter_stitch_movements = inter_stitch_movements.add(line);
         let offset = if !seen_movement_pairs.contains(&(first_point, second_point)) {
             (0.0, 0.0)
@@ -237,7 +237,7 @@ fn draw_inter_stitch_movement(
         };
         inter_stitch_movements = inter_stitch_movements.add(add_sequence_number(
             number_sequence.next().unwrap(),
-            "blue",
+            "green",
             first_point,
             second_point,
             offset,
