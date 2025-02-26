@@ -220,7 +220,7 @@ fn draw_inter_stitch_movement(
 ) -> Group {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
     let mut seen_movement_pairs: HashSet<(GridCell, GridCell)> = HashSet::new();
-    let mut inter_stitch_movements = Group::new().set("fill", "blue").set("stroke", "green");
+    let mut inter_stitch_movements = Group::new().set("fill", "green").set("stroke", "green");
     for stitch in stitches.windows(2) {
         let first_point = stitch[0].get_end_location();
         let second_point = stitch[1].start;
