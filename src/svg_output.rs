@@ -372,7 +372,7 @@ mod tests {
     }
 
     #[test]
-    fn test_make_svg_and_write_multiple_stitches() {
+    fn test_make_svg_and_write_single_row() {
         let test_stitches = vec![
             HalfStitch {
                 start: GridCell::new(0, 0),
