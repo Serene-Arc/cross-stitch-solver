@@ -1,5 +1,6 @@
 use crate::grid_cell::GridCell;
 use crate::stitch::HalfStitch;
+use itertools::Itertools;
 use std::collections::HashSet;
 use svg::node::element::{Circle, Definitions, Group, Line, Marker, Mask, Path, Text};
 use svg::{Document, Node};
@@ -50,10 +51,20 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
         view_height,
     );
 
+    let all_lines = bottom_stitches_group
+        .iter()
+        .chain(inter_stitch_group.iter())
+        .chain(top_stitches_group.iter())
+        .sorted_by_key(|l| l.0)
+        .map(|l| l.1.clone())
+        .collect_vec();
+
     document = document.add(dot_group);
-    document = document.add(bottom_stitches_group);
-    document = document.add(top_stitches_group);
-    document = document.add(inter_stitch_group);
+
+    for l in all_lines {
+        document.append(l);
+    }
+
     document = document.add(bottom_stitch_text);
     document = document.add(inter_stitch_text);
     document = document.add(top_stitch_text);
@@ -117,22 +128,25 @@ fn draw_stitches(
     colour: &str,
     starting_number: usize,
     view_height: f64,
-) -> (Group, Group) {
+) -> (Vec<(usize, Line)>, Group) {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
-    let mut stitch_group = Group::new().set("fill", colour).set("stroke", colour);
+    let mut stitch_lines = Vec::with_capacity(stitches.len());
     let mut text_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
         let mut line = _draw_line(view_height, stitch.start, stitch.get_end_location())
-            .set("marker-end", format!("url(#arrow-{})", colour));
+            .set("marker-end", format!("url(#arrow-{})", colour))
+            .set("fill", colour)
+            .set("stroke", colour);
 
         // If the starting number is 1, then this is the bottom stitch,
         // and we should apply the mask.
         if starting_number == 1 {
             line = line.set("mask", "url(#intersection-mask)");
         }
-        stitch_group = stitch_group.add(line);
+        let i = number_sequence.next().unwrap();
+        stitch_lines.push((i, line));
         text_group = text_group.add(add_sequence_number(
-            number_sequence.next().unwrap(),
+            i,
             colour,
             stitch.start,
             stitch.get_end_location(),
@@ -140,7 +154,7 @@ fn draw_stitches(
             view_height,
         ));
     }
-    (stitch_group, text_group)
+    (stitch_lines, text_group)
 }
 
 fn _draw_line(view_height: f64, first_point: GridCell, second_point: GridCell) -> Line {
@@ -224,25 +238,28 @@ fn draw_inter_stitch_movement(
     stitches: &[HalfStitch],
     starting_number: usize,
     view_height: f64,
-) -> (Group, Group) {
+) -> (Vec<(usize, Line)>, Group) {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
     let mut seen_movement_pairs: HashSet<(GridCell, GridCell)> = HashSet::new();
-    let mut inter_stitch_movements = Group::new().set("fill", "green").set("stroke", "green");
+    let mut inter_stitch_movements = Vec::with_capacity(stitches.len());
     let mut text_group = Group::new().set("fill", "green").set("stroke", "green");
     for stitch in stitches.windows(2) {
         let first_point = stitch[0].get_end_location();
         let second_point = stitch[1].start;
         let line = _draw_line(view_height, first_point, second_point)
             .set("stroke-dasharray", "10,10")
-            .set("marker-end", format!("url(#arrow-{})", "green"));
-        inter_stitch_movements = inter_stitch_movements.add(line);
+            .set("marker-end", format!("url(#arrow-{})", "green"))
+            .set("fill", "green")
+            .set("stroke", "green");
+        let i = number_sequence.next().unwrap();
+        inter_stitch_movements.push((i, line));
         let offset = if !seen_movement_pairs.contains(&(first_point, second_point)) {
             (0.0, 0.0)
         } else {
             (0.0, -FONT_SIZE as f64)
         };
         text_group = text_group.add(add_sequence_number(
-            number_sequence.next().unwrap(),
+            i,
             "green",
             first_point,
             second_point,
