@@ -39,9 +39,11 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     document = document.add(defs);
 
     let dot_group = draw_grid(max_x, max_y, view_height);
-    let bottom_stitches_group = draw_stitches(&bottom_stitches, "blue", 1, view_height);
-    let inter_stitch_group = draw_inter_stitch_movement(&centred_stitches, 2, view_height);
-    let top_stitches_group = draw_stitches(
+    let (bottom_stitches_group, bottom_stitch_text) =
+        draw_stitches(&bottom_stitches, "blue", 1, view_height);
+    let (inter_stitch_group, inter_stitch_text) =
+        draw_inter_stitch_movement(&centred_stitches, 2, view_height);
+    let (top_stitches_group, top_stitch_text) = draw_stitches(
         &top_stitches,
         "red",
         1 + bottom_stitches.len() * 2,
@@ -52,6 +54,9 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     document = document.add(bottom_stitches_group);
     document = document.add(top_stitches_group);
     document = document.add(inter_stitch_group);
+    document = document.add(bottom_stitch_text);
+    document = document.add(inter_stitch_text);
+    document = document.add(top_stitch_text);
 
     document
 }
@@ -112,9 +117,10 @@ fn draw_stitches(
     colour: &str,
     starting_number: usize,
     view_height: f64,
-) -> Group {
+) -> (Group, Group) {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
     let mut stitch_group = Group::new().set("fill", colour).set("stroke", colour);
+    let mut text_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
         let mut line = _draw_line(view_height, stitch.start, stitch.get_end_location())
             .set("marker-end", format!("url(#arrow-{})", colour));
@@ -125,7 +131,7 @@ fn draw_stitches(
             line = line.set("mask", "url(#intersection-mask)");
         }
         stitch_group = stitch_group.add(line);
-        stitch_group = stitch_group.add(add_sequence_number(
+        text_group = text_group.add(add_sequence_number(
             number_sequence.next().unwrap(),
             colour,
             stitch.start,
@@ -134,7 +140,7 @@ fn draw_stitches(
             view_height,
         ));
     }
-    stitch_group
+    (stitch_group, text_group)
 }
 
 fn _draw_line(view_height: f64, first_point: GridCell, second_point: GridCell) -> Line {
@@ -218,10 +224,11 @@ fn draw_inter_stitch_movement(
     stitches: &[HalfStitch],
     starting_number: usize,
     view_height: f64,
-) -> Group {
+) -> (Group, Group) {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
     let mut seen_movement_pairs: HashSet<(GridCell, GridCell)> = HashSet::new();
     let mut inter_stitch_movements = Group::new().set("fill", "green").set("stroke", "green");
+    let mut text_group = Group::new().set("fill", "green").set("stroke", "green");
     for stitch in stitches.windows(2) {
         let first_point = stitch[0].get_end_location();
         let second_point = stitch[1].start;
@@ -234,7 +241,7 @@ fn draw_inter_stitch_movement(
         } else {
             (0.0, -FONT_SIZE as f64)
         };
-        inter_stitch_movements = inter_stitch_movements.add(add_sequence_number(
+        text_group = text_group.add(add_sequence_number(
             number_sequence.next().unwrap(),
             "green",
             first_point,
@@ -245,7 +252,7 @@ fn draw_inter_stitch_movement(
 
         seen_movement_pairs.insert((first_point, second_point));
     }
-    inter_stitch_movements
+    (inter_stitch_movements, text_group)
 }
 
 /// Move the stitches so that the bottommost and leftmost ones are at the origin.
