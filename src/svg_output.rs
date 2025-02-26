@@ -184,8 +184,9 @@ fn add_sequence_number(
         .set("fill", colour)
         .set("font-size", format!("{}", FONT_SIZE))
         .set("font", "monospace")
-        .set("stroke", "0.1")
-        .set("paint-order", "stroke fill")
+        .set("stroke", "black")
+        .set("stroke-width", LINE_WIDTH / 3.0)
+        .set("paint-order", "stroke")
 }
 
 fn calculate_text_coordinates(
