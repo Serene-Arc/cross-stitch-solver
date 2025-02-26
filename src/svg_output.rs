@@ -118,6 +118,9 @@ fn draw_stitches(
     for stitch in stitches {
         let mut line = _draw_line(view_height, stitch.start, stitch.get_end_location())
             .set("marker-end", format!("url(#arrow-{})", colour));
+
+        // If the starting number is 1, then this is the bottom stitch,
+        // and we should apply the mask.
         if starting_number == 1 {
             line = line.set("mask", "url(#intersection-mask)");
         }
@@ -195,6 +198,7 @@ fn calculate_text_coordinates(
     let x_pos = (first_point.x as f64 + (0.1 * horizontal_direction as f64)) * DOT_SPACING
         + DOT_RADIUS
         // Add offset to compensate for the text being drawn from the top left.
+        // This helps avoid intersections between the text and the lines.
         + if horizontal_direction > 0 {
             FONT_SIZE as f64
         } else {
