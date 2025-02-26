@@ -1,8 +1,8 @@
 use crate::grid_cell::GridCell;
 use crate::stitch::HalfStitch;
 use std::collections::HashSet;
-use svg::node::element::{Circle, Definitions, Group, Marker, Path, Text};
-use svg::Document;
+use svg::node::element::{Circle, Definitions, Group, Marker, Mask, Path, Text};
+use svg::{Document, Node};
 
 const DOT_SPACING: f64 = 500.0;
 const DOT_RADIUS: f64 = DOT_SPACING / 10.0;
@@ -35,6 +35,7 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     defs = defs.add(create_arrow_marker("arrow-green", "green"));
     defs = defs.add(create_arrow_marker("arrow-red", "red"));
     defs = defs.add(create_arrow_marker("arrow-blue", "blue"));
+    defs = defs.add(create_intersection_mask(max_x, max_y));
     document = document.add(defs);
 
     let dot_group = draw_grid(max_x, max_y, view_height);
@@ -53,6 +54,38 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     document = document.add(inter_stitch_group);
 
     document
+}
+
+fn create_intersection_mask(max_x: isize, max_y: isize) -> Mask {
+    let mut mask = Mask::new()
+        .set("id", "intersection-mask")
+        .set("x", "0")
+        .set("y", "0")
+        .set("width", "100%")
+        .set("height", "100%");
+
+    let mask_colouring = svg::node::element::Rectangle::new()
+        .set("x", "0")
+        .set("y", "0")
+        .set("width", "100%")
+        .set("height", "100%")
+        .set("fill", "white");
+    mask.append(mask_colouring);
+
+    for col in 0..max_x {
+        for row in 0..max_y {
+            let mid_x: f64 = ((DOT_SPACING / 2.0) + DOT_SPACING * col as f64) + DOT_RADIUS;
+            let mid_y: f64 = ((DOT_SPACING / 2.0) + DOT_SPACING * row as f64) + DOT_RADIUS;
+            let cutout = Circle::new()
+                .set("cx", mid_x)
+                .set("cy", mid_y)
+                .set("r", DOT_RADIUS / 4.0)
+                .set("fill", "black");
+            mask.append(cutout);
+        }
+    }
+
+    mask
 }
 
 fn draw_grid(max_x: isize, max_y: isize, view_height: f64) -> Group {
@@ -85,7 +118,7 @@ fn draw_stitches(
     for stitch in stitches {
         let y_1 = view_height - (stitch.start.y as f64 * DOT_SPACING + DOT_RADIUS);
         let y_2 = view_height - (stitch.get_end_location().y as f64 * DOT_SPACING + DOT_RADIUS);
-        let line = svg::node::element::Line::new()
+        let mut line = svg::node::element::Line::new()
             .set("x1", stitch.start.x as f64 * DOT_SPACING + DOT_RADIUS)
             .set("y1", y_1)
             .set(
@@ -95,6 +128,9 @@ fn draw_stitches(
             .set("y2", y_2)
             .set("stroke-width", LINE_WIDTH)
             .set("marker-end", format!("url(#arrow-{})", colour));
+        if starting_number == 1 {
+            line = line.set("mask", "url(#intersection-mask)");
+        }
         stitch_group = stitch_group.add(line);
         stitch_group = stitch_group.add(add_sequence_number(
             number_sequence.next().unwrap(),
