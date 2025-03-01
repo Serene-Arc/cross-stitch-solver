@@ -134,10 +134,15 @@ fn draw_stitches(
     let mut stitch_lines = Vec::with_capacity(stitches.len());
     let mut text_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
-        let mut line = _draw_line(view_height, stitch.start, stitch.get_end_location())
-            .set("marker-end", format!("url(#arrow-{})", colour))
-            .set("fill", colour)
-            .set("stroke", colour);
+        let mut line = _draw_line(
+            view_height,
+            stitch.start,
+            stitch.get_end_location(),
+            (0.0, 0.0),
+        )
+        .set("marker-end", format!("url(#arrow-{})", colour))
+        .set("fill", colour)
+        .set("stroke", colour);
 
         // If the starting number is 1, then this is the bottom stitch,
         // and we should apply the mask.
@@ -158,13 +163,20 @@ fn draw_stitches(
     (stitch_lines, text_group)
 }
 
-fn _draw_line(view_height: f64, first_point: GridCell, second_point: GridCell) -> Line {
-    let y_1 = view_height - (first_point.y as f64 * DOT_SPACING + DOT_RADIUS);
-    let y_2 = view_height - (second_point.y as f64 * DOT_SPACING + DOT_RADIUS);
+fn _draw_line(
+    view_height: f64,
+    first_point: GridCell,
+    second_point: GridCell,
+    offset: (f64, f64),
+) -> Line {
+    let y_1 = view_height - (first_point.y as f64 * DOT_SPACING + DOT_RADIUS + offset.1);
+    let y_2 = view_height - (second_point.y as f64 * DOT_SPACING + DOT_RADIUS + offset.1);
+    let x1 = first_point.x as f64 * DOT_SPACING + DOT_RADIUS + offset.0;
+    let x2 = second_point.x as f64 * DOT_SPACING + DOT_RADIUS + offset.0;
     Line::new()
-        .set("x1", first_point.x as f64 * DOT_SPACING + DOT_RADIUS)
+        .set("x1", x1)
         .set("y1", y_1)
-        .set("x2", second_point.x as f64 * DOT_SPACING + DOT_RADIUS)
+        .set("x2", x2)
         .set("y2", y_2)
         .set("stroke-width", LINE_WIDTH)
 }
@@ -247,7 +259,7 @@ fn draw_inter_stitch_movement(
     for stitch in stitches.windows(2) {
         let first_point = stitch[0].get_end_location();
         let second_point = stitch[1].start;
-        let line = _draw_line(view_height, first_point, second_point)
+        let line = _draw_line(view_height, first_point, second_point, (0.0, 0.0))
             .set("stroke-dasharray", "10,10")
             .set("marker-end", format!("url(#arrow-{})", "green"))
             .set("fill", "green")
