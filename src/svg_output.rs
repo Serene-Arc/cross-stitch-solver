@@ -73,6 +73,7 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
 }
 
 fn create_intersection_mask(max_x: isize, max_y: isize) -> Mask {
+    // TODO: if there is only a bottom stitch, don't add the mask for that square.
     let mut mask = Mask::new()
         .set("id", "intersection-mask")
         .set("x", "0")
