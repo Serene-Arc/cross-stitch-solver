@@ -463,6 +463,38 @@ mod tests {
     }
 
     #[test]
+    fn test_make_svg_and_write_single_column() {
+        let test_stitches = vec![
+            HalfStitch {
+                start: GridCell::new(0, 0),
+                stitch_corner: StartingStitchCorner::BottomLeft,
+            },
+            HalfStitch {
+                start: GridCell::new(0, 1),
+                stitch_corner: StartingStitchCorner::BottomLeft,
+            },
+            HalfStitch {
+                start: GridCell::new(0, 2),
+                stitch_corner: StartingStitchCorner::BottomLeft,
+            },
+            HalfStitch {
+                start: GridCell::new(1, 0),
+                stitch_corner: StartingStitchCorner::BottomRight,
+            },
+            HalfStitch {
+                start: GridCell::new(1, 1),
+                stitch_corner: StartingStitchCorner::BottomRight,
+            },
+            HalfStitch {
+                start: GridCell::new(1, 2),
+                stitch_corner: StartingStitchCorner::BottomRight,
+            },
+        ];
+        let document = create_graphic(&test_stitches);
+        svg::save("stitches.svg", &document).unwrap()
+    }
+
+    #[test]
     fn test_calculate_text_position_stitch_bottom_left_to_top_right() {
         let test_stitch = HalfStitch {
             start: GridCell::new(0, 0),
