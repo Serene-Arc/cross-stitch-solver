@@ -1,5 +1,7 @@
 mod grid;
 mod grid_cell;
+mod line_segment;
+mod line_segment_tree;
 mod stitch;
 mod svg_output;
 mod symbolic_sum;
