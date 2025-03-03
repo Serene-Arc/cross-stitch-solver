@@ -108,7 +108,7 @@ mod tests {
     }
 
     #[test]
-    fn test_group_lines_by_segment_two_overlapping() {
+    fn test_group_lines_by_segment_two_overlapping_groups() {
         let segments = vec![
             (GridCell::new(0, 0), GridCell::new(0, 1)),
             (GridCell::new(0, 0), GridCell::new(0, 2)),
