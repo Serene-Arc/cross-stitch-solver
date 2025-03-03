@@ -1,44 +1,14 @@
 use crate::grid_cell::GridCell;
-use cached::proc_macro::cached;
-use std::collections::HashSet;
+use std::cmp::{max, min};
 
 /// A struct for working with lines that are orthogonal to a grid i.e. straight between grid points.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct LineSegment(GridCell, GridCell);
 
-#[cached]
-pub fn break_line(start: GridCell, end: GridCell) -> HashSet<LineSegment> {
-    let mut segments = HashSet::new();
-    let dx = end.x - start.x;
-    let dy = end.y - start.y;
-    let offset = if dx > 0 {
-        GridCell::new(1, 0)
-    } else if dx < 0 {
-        GridCell::new(-1, 0)
-    } else if dy > 0 {
-        GridCell::new(0, 1)
-    } else if dy < 0 {
-        GridCell::new(0, -1)
-    } else {
-        panic!("Offset could not be calculated")
-    };
-    let mut current_place = start;
-    let mut current_end = start + offset;
-    loop {
-        if current_place == end {
-            break;
-        }
-        loop {
-            segments.insert(LineSegment(current_place, current_end));
-            if current_end == end {
-                break;
-            }
-            current_end = current_end + offset;
-        }
-        current_place = current_place + offset;
-        current_end = current_place + offset;
-    }
-    segments
+#[derive(Debug, PartialEq, Eq)]
+enum Axis {
+    Horizontal,
+    Vertical,
 }
 
 impl LineSegment {
@@ -50,58 +20,62 @@ impl LineSegment {
         ((self.1.x - self.0.x).abs() + (self.1.y - self.0.y).abs()) as usize
     }
 
-    pub fn contains_segment(&self, segment: &LineSegment) -> bool {
-        let sub_segments = break_line(self.0, self.1);
-        !sub_segments.is_disjoint(&break_line(segment.0, segment.1))
+    /// Determines if two LineSegments overlap.
+    pub fn contains_segment(&self, other: &LineSegment) -> bool {
+        // Determine if both segments are horizontal or vertical
+        let self_orientation = self.orientation();
+        let other_orientation = other.orientation();
+
+        match (self_orientation, other_orientation) {
+            (Some(self_dir), Some(other_dir)) => {
+                // We don't consider lines of different orientations to be overlapping.
+                if self_dir != other_dir {
+                    return false;
+                }
+
+                if self_dir == Axis::Horizontal {
+                    // Check if they are on the same y-coordinate
+                    if self.0.y != other.0.y {
+                        return false;
+                    }
+                    // Check if their x ranges overlap
+                    let (self_min_x, self_max_x) =
+                        (min(self.0.x, self.1.x), max(self.0.x, self.1.x));
+                    let (other_min_x, other_max_x) =
+                        (min(other.0.x, other.1.x), max(other.0.x, other.1.x));
+                    max(self_min_x, other_min_x) < min(self_max_x, other_max_x)
+                } else {
+                    // Check if they are on the same x-coordinate
+                    if self.0.x != other.0.x {
+                        return false;
+                    }
+                    // Check if their y ranges overlap
+                    let (self_min_y, self_max_y) =
+                        (min(self.0.y, self.1.y), max(self.0.y, self.1.y));
+                    let (other_min_y, other_max_y) =
+                        (min(other.0.y, other.1.y), max(other.0.y, other.1.y));
+                    max(self_min_y, other_min_y) < min(self_max_y, other_max_y)
+                }
+            }
+            _ => false, // One or both segments are not strictly horizontal or vertical
+        }
+    }
+
+    /// Determines the orientation of a line segment.
+    fn orientation(&self) -> Option<Axis> {
+        if self.0.y == self.1.y {
+            Some(Axis::Horizontal)
+        } else if self.0.x == self.1.x {
+            Some(Axis::Vertical)
+        } else {
+            None
+        }
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-
-    #[test]
-    fn test_break_line_single_y() {
-        let result = break_line(GridCell::new(0, 0), GridCell::new(0, 1));
-        assert_eq!(
-            result,
-            HashSet::from([LineSegment(GridCell::new(0, 0), GridCell::new(0, 1))])
-        )
-    }
-
-    #[test]
-    fn test_break_line_single_x() {
-        let result = break_line(GridCell::new(0, 0), GridCell::new(1, 0));
-        assert_eq!(
-            result,
-            HashSet::from([LineSegment(GridCell::new(0, 0), GridCell::new(1, 0))])
-        )
-    }
-
-    #[test]
-    fn test_break_line_two_x() {
-        let result = break_line(GridCell::new(0, 0), GridCell::new(2, 0));
-        assert_eq!(
-            result,
-            HashSet::from([
-                LineSegment(GridCell::new(0, 0), GridCell::new(1, 0)),
-                LineSegment(GridCell::new(0, 0), GridCell::new(2, 0)),
-                LineSegment(GridCell::new(1, 0), GridCell::new(2, 0)),
-            ])
-        )
-    }
-
-    #[test]
-    fn test_break_line_four_x() {
-        let result = break_line(GridCell::new(0, 0), GridCell::new(4, 0));
-        assert_eq!(result.len(), 10)
-    }
-
-    #[test]
-    fn test_break_line_four_y() {
-        let result = break_line(GridCell::new(0, 0), GridCell::new(0, 4));
-        assert_eq!(result.len(), 10)
-    }
 
     #[test]
     fn test_contains_segment_far_disjoint() {
