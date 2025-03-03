@@ -253,36 +253,55 @@ fn draw_inter_stitch_movement(
     view_height: f64,
 ) -> (Vec<(usize, Line)>, Group) {
     let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
-    let mut seen_movement_pairs: HashSet<(GridCell, GridCell)> = HashSet::new();
+
+    let lines: Vec<(GridCell, GridCell)> = stitches
+        .windows(2)
+        .map(|w| (w[0].get_end_location(), w[1].start))
+        .collect();
+    let overlapping_lines = group_lines_by_segments(lines);
+
     let mut inter_stitch_movements = Vec::with_capacity(stitches.len());
     let mut text_group = Group::new().set("fill", "green").set("stroke", "green");
-    for stitch in stitches.windows(2) {
-        let first_point = stitch[0].get_end_location();
-        let second_point = stitch[1].start;
-        let line = _draw_line(view_height, first_point, second_point, (0.0, 0.0))
-            .set("stroke-dasharray", "10,10")
-            .set("marker-end", format!("url(#arrow-{})", "green"))
-            .set("fill", "green")
-            .set("stroke", "green");
-        let i = number_sequence.next().unwrap();
-        inter_stitch_movements.push((i, line));
-        let offset = if !seen_movement_pairs.contains(&(first_point, second_point)) {
-            (0.0, 0.0)
-        } else {
-            (0.0, -FONT_SIZE as f64)
-        };
-        text_group = text_group.add(add_sequence_number(
-            i,
-            "green",
-            first_point,
-            second_point,
-            offset,
-            view_height,
-        ));
 
-        seen_movement_pairs.insert((first_point, second_point));
+    for overlapping_group in overlapping_lines {
+        for (number, line) in overlapping_group.iter().enumerate() {
+            // Alternate the offset between positive and negative
+            // so that the centre line is the first.
+            let offset: f64 = FONT_SIZE as f64 * (-1.0 * number as f64);
+            let line_offset = if line.0.x == line.1.x {
+                (0.0, offset)
+            } else {
+                (offset, 0.0)
+            };
+            let text_offset = if line.0.x == line.1.x {
+                (0.0, offset + FONT_SIZE as f64)
+            } else {
+                (offset + FONT_SIZE as f64, 0.0)
+            };
+            let path = _draw_line(view_height, line.0, line.1, line_offset)
+                .set("stroke-dasharray", "10,10")
+                .set("marker-end", format!("url(#arrow-{})", "green"))
+                .set("fill", "green")
+                .set("stroke", "green");
+            let i = number_sequence.next().unwrap();
+
+            inter_stitch_movements.push((i, path));
+            text_group = text_group.add(add_sequence_number(
+                i,
+                "green",
+                line.0,
+                line.1,
+                text_offset,
+                view_height,
+            ));
+        }
     }
+
     (inter_stitch_movements, text_group)
+}
+
+fn group_lines_by_segments(lines: Vec<(GridCell, GridCell)>) -> HashSet<Vec<(GridCell, GridCell)>> {
+    todo!()
 }
 
 /// Move the stitches so that the bottommost and leftmost ones are at the origin.
@@ -307,6 +326,44 @@ fn re_centre_stitches(stitches: &[HalfStitch]) -> Vec<HalfStitch> {
             ..*stitch
         })
         .collect()
+}
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+struct LineSegment(GridCell, GridCell);
+
+impl LineSegment {
+    pub fn break_line(start: GridCell, end: GridCell) -> Vec<LineSegment> {
+        let mut segments = Vec::new();
+        let dx = end.x - start.x;
+        let dy = end.y - start.y;
+        let offset = if dx > 0 {
+            GridCell::new(1, 0)
+        } else if dx < 0 {
+            GridCell::new(-1, 0)
+        } else if dy > 0 {
+            GridCell::new(0, 1)
+        } else if dy < 0 {
+            GridCell::new(0, -1)
+        } else {
+            panic!("Offset could not be calculated")
+        };
+        let mut current_place = start;
+        let mut current_end = start + offset;
+        loop {
+            if current_place == end {
+                break;
+            }
+            loop {
+                segments.push(LineSegment(current_place, current_end));
+                if current_end == end {
+                    break;
+                }
+                current_end = current_end + offset;
+            }
+            current_place = current_place + offset;
+            current_end = current_place + offset;
+        }
+        segments
+    }
 }
 
 #[cfg(test)]
@@ -548,5 +605,96 @@ mod tests {
         let expected_y = SINGLE_ROW_VIEW_HEIGHT - (2.0 * DOT_RADIUS);
         assert_eq!(result.0, expected_x);
         assert_eq!(result.1, expected_y);
+    }
+
+    #[test]
+    fn test_break_line_single_y() {
+        let result = LineSegment::break_line(GridCell::new(0, 0), GridCell::new(0, 1));
+        assert_eq!(
+            result,
+            vec![LineSegment(GridCell::new(0, 0), GridCell::new(0, 1))]
+        )
+    }
+
+    #[test]
+    fn test_break_line_single_x() {
+        let result = LineSegment::break_line(GridCell::new(0, 0), GridCell::new(1, 0));
+        assert_eq!(
+            result,
+            vec![LineSegment(GridCell::new(0, 0), GridCell::new(1, 0))]
+        )
+    }
+
+    #[test]
+    fn test_break_line_two_x() {
+        let result = LineSegment::break_line(GridCell::new(0, 0), GridCell::new(2, 0));
+        assert_eq!(
+            result,
+            vec![
+                LineSegment(GridCell::new(0, 0), GridCell::new(1, 0)),
+                LineSegment(GridCell::new(0, 0), GridCell::new(2, 0)),
+                LineSegment(GridCell::new(1, 0), GridCell::new(2, 0)),
+            ]
+        )
+    }
+
+    #[test]
+    fn test_break_line_four_x() {
+        let result = LineSegment::break_line(GridCell::new(0, 0), GridCell::new(4, 0));
+        assert_eq!(result.len(), 10)
+    }
+
+    #[test]
+    fn test_break_line_four_y() {
+        let result = LineSegment::break_line(GridCell::new(0, 0), GridCell::new(0, 4));
+        assert_eq!(result.len(), 10)
+    }
+
+    #[test]
+    fn test_group_lines_by_segment_no_overlapping() {
+        let segments = vec![
+            (GridCell::new(0, 0), GridCell::new(0, 1)),
+            (GridCell::new(0, 0), GridCell::new(1, 0)),
+        ];
+        let result = group_lines_by_segments(segments);
+        assert_eq!(result.len(), 2)
+    }
+
+    #[test]
+    fn test_group_lines_by_segment_one_overlapping_one_not() {
+        let segments = vec![
+            (GridCell::new(0, 0), GridCell::new(0, 1)),
+            (GridCell::new(0, 0), GridCell::new(0, 2)),
+            (GridCell::new(0, 0), GridCell::new(1, 0)),
+        ];
+        let result = group_lines_by_segments(segments);
+        assert_eq!(result.len(), 2)
+    }
+
+    #[test]
+    fn test_group_lines_by_segment_two_overlapping() {
+        let segments = vec![
+            (GridCell::new(0, 0), GridCell::new(0, 1)),
+            (GridCell::new(0, 0), GridCell::new(0, 2)),
+            (GridCell::new(0, 0), GridCell::new(0, 3)),
+            (GridCell::new(2, 0), GridCell::new(0, 3)),
+            (GridCell::new(0, 0), GridCell::new(1, 0)),
+            (GridCell::new(1, 0), GridCell::new(2, 0)),
+        ];
+        let result = group_lines_by_segments(segments);
+        assert_eq!(result.len(), 2)
+    }
+
+    #[test]
+    fn test_group_lines_by_segment_two_overlapping_two_not() {
+        let segments = vec![
+            (GridCell::new(0, 0), GridCell::new(0, 1)),
+            (GridCell::new(0, 0), GridCell::new(0, 2)),
+            (GridCell::new(0, 0), GridCell::new(0, 3)),
+            (GridCell::new(2, 0), GridCell::new(0, 3)),
+            (GridCell::new(0, 0), GridCell::new(1, 0)),
+        ];
+        let result = group_lines_by_segments(segments);
+        assert_eq!(result.len(), 2)
     }
 }
