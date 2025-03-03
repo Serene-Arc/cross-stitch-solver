@@ -17,7 +17,7 @@ impl LineSegment {
     }
 
     pub fn get_length(&self) -> usize {
-        ((self.1.x - self.0.x).abs() + (self.1.y - self.0.y).abs()) as usize
+        self.0.euclidean_distance(&self.1).floor() as usize
     }
 
     /// Determines if two LineSegments overlap.
