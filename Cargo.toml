@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+cached = { version = "0.54.0", features = ["proc_macro"] }
 iced = { version = "0.13.1", features = ["canvas", "tokio", "debug", "advanced"] }
 itertools = "0.14.0"
 log = "0.4.25"

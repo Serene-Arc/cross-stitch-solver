@@ -5,7 +5,7 @@ repos:
     - id: fmt
     - id: cargo-check
     - id: clippy
-      args: ["-W", "clippy:pedantic"]
+      args: ["--", "-Wclippy:pedantic"]
   - repo: https://github.com/crate-ci/typos
     rev: dictgen-v0.3.1
     hooks:

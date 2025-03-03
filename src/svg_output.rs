@@ -1,5 +1,4 @@
 use crate::grid_cell::GridCell;
-use crate::line_segment_tree::group_lines_by_segments;
 use crate::stitch::HalfStitch;
 use itertools::Itertools;
 use svg::node::element::{Circle, Definitions, Group, Line, Marker, Mask, Path, Text};
@@ -252,52 +251,53 @@ fn draw_inter_stitch_movement(
     starting_number: usize,
     view_height: f64,
 ) -> (Vec<(usize, Line)>, Group) {
-    let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
-
-    let lines: Vec<(GridCell, GridCell)> = stitches
-        .windows(2)
-        .map(|w| (w[0].get_end_location(), w[1].start))
-        .collect();
-    let overlapping_lines = group_lines_by_segments(lines);
-
-    let mut inter_stitch_movements = Vec::with_capacity(stitches.len());
-    let mut text_group = Group::new().set("fill", "green").set("stroke", "green");
-
-    for overlapping_group in overlapping_lines {
-        for (number, line) in overlapping_group.iter().enumerate() {
-            // Alternate the offset between positive and negative
-            // so that the centre line is the first.
-            let offset: f64 = FONT_SIZE as f64 * (-1.0 * number as f64);
-            let line_offset = if line.0.x == line.1.x {
-                (0.0, offset)
-            } else {
-                (offset, 0.0)
-            };
-            let text_offset = if line.0.x == line.1.x {
-                (0.0, offset + FONT_SIZE as f64)
-            } else {
-                (offset + FONT_SIZE as f64, 0.0)
-            };
-            let path = _draw_line(view_height, line.0, line.1, line_offset)
-                .set("stroke-dasharray", "10,10")
-                .set("marker-end", format!("url(#arrow-{})", "green"))
-                .set("fill", "green")
-                .set("stroke", "green");
-            let i = number_sequence.next().unwrap();
-
-            inter_stitch_movements.push((i, path));
-            text_group = text_group.add(add_sequence_number(
-                i,
-                "green",
-                line.0,
-                line.1,
-                text_offset,
-                view_height,
-            ));
-        }
-    }
-
-    (inter_stitch_movements, text_group)
+    todo!()
+    // let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
+    //
+    // let lines: Vec<(GridCell, GridCell)> = stitches
+    //     .windows(2)
+    //     .map(|w| (w[0].get_end_location(), w[1].start))
+    //     .collect();
+    // let overlapping_lines = group_lines_by_segments(lines.clone());
+    //
+    // let mut inter_stitch_movements = Vec::with_capacity(stitches.len());
+    // let mut text_group = Group::new().set("fill", "green").set("stroke", "green");
+    //
+    // for overlapping_group in lines {
+    //     for (number, line) in overlapping_group.iter().enumerate() {
+    //         // Alternate the offset between positive and negative
+    //         // so that the centre line is the first.
+    //         let offset: f64 = FONT_SIZE as f64 * (-1.0 * number as f64);
+    //         let line_offset = if line.0.x == line.1.x {
+    //             (0.0, offset)
+    //         } else {
+    //             (offset, 0.0)
+    //         };
+    //         let text_offset = if line.0.x == line.1.x {
+    //             (0.0, offset + FONT_SIZE as f64)
+    //         } else {
+    //             (offset + FONT_SIZE as f64, 0.0)
+    //         };
+    //         let path = _draw_line(view_height, line.0, line.1, line_offset)
+    //             .set("stroke-dasharray", "10,10")
+    //             .set("marker-end", format!("url(#arrow-{})", "green"))
+    //             .set("fill", "green")
+    //             .set("stroke", "green");
+    //         let i = number_sequence.next().unwrap();
+    //
+    //         inter_stitch_movements.push((i, path));
+    //         text_group = text_group.add(add_sequence_number(
+    //             i,
+    //             "green",
+    //             line.0,
+    //             line.1,
+    //             text_offset,
+    //             view_height,
+    //         ));
+    //     }
+    // }
+    //
+    // (inter_stitch_movements, text_group)
 }
 
 /// Move the stitches so that the bottommost and leftmost ones are at the origin.
