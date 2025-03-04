@@ -44,7 +44,7 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     let (bottom_stitches_group, bottom_stitch_text) =
         draw_stitches(&bottom_stitches, "blue", 1, view_height);
     let (inter_stitch_group, inter_stitch_text) =
-        draw_inter_stitch_movement(&centred_stitches, 2, view_height);
+        draw_inter_stitch_movement(&centred_stitches, view_height);
     let (top_stitches_group, top_stitch_text) = draw_stitches(
         &top_stitches,
         "red",
@@ -250,7 +250,6 @@ fn calculate_text_coordinates(
 /// Draw the lines that show where the thread travels on the back of the fabric.
 fn draw_inter_stitch_movement(
     stitches: &[HalfStitch],
-    starting_number: usize,
     view_height: f64,
 ) -> (Vec<(usize, Line)>, Group) {
     let lines: Vec<(GridCell, GridCell)> = stitches
@@ -282,7 +281,7 @@ fn draw_inter_stitch_movement(
             .set("marker-end", format!("url(#arrow-{})", "green"))
             .set("fill", "green")
             .set("stroke", "green");
-        let line_order = starting_number + line.order * 2;
+        let line_order = 2 + line.order * 2;
 
         inter_stitch_movements.push((line_order, path));
         text_group = text_group.add(add_sequence_number(
