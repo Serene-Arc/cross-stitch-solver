@@ -83,70 +83,92 @@ impl From<(GridCell, GridCell)> for LineSegment {
 mod test {
     use super::*;
 
+    fn assert_commutative<T>(a: T, b: T, function: Box<dyn Fn(&T, &T) -> bool>, expected: bool) {
+        assert_eq!(function(&a, &b), expected);
+        assert_eq!(function(&b, &a), expected);
+    }
+
     #[test]
     fn test_contains_segment_far_disjoint() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
         let second_segment = LineSegment::new(GridCell::new(1, 2), GridCell::new(1, 3));
-        let first_result = first_segment.overlaps(&second_segment);
-        let second_result = second_segment.overlaps(&first_segment);
-        assert_eq!(first_result, false);
-        assert_eq!(second_result, false);
+        assert_commutative(
+            first_segment,
+            second_segment,
+            Box::from(LineSegment::overlaps),
+            false,
+        );
     }
 
     #[test]
     fn test_contains_segment_corner_touching_orthogonal() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
         let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(1, 0));
-        let first_result = first_segment.overlaps(&second_segment);
-        let second_result = second_segment.overlaps(&first_segment);
-        assert_eq!(first_result, false);
-        assert_eq!(second_result, false);
+        assert_commutative(
+            first_segment,
+            second_segment,
+            Box::from(LineSegment::overlaps),
+            false,
+        );
     }
 
     #[test]
     fn test_contains_segment_direct_overlap() {
-        let result = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1))
-            .overlaps(&LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1)));
-        assert_eq!(result, true);
+        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
+        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
+        assert_commutative(
+            first_segment,
+            second_segment,
+            Box::from(LineSegment::overlaps),
+            true,
+        );
     }
 
     #[test]
     fn test_contains_segment_partial_overlap_inside() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 5));
         let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
-        let first_result = first_segment.overlaps(&second_segment);
-        let second_result = second_segment.overlaps(&first_segment);
-        assert_eq!(first_result, true);
-        assert_eq!(second_result, true);
+        assert_commutative(
+            first_segment,
+            second_segment,
+            Box::from(LineSegment::overlaps),
+            true,
+        );
     }
 
     #[test]
     fn test_contains_segment_partial_overlap_outside() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 5));
         let second_segment = LineSegment::new(GridCell::new(0, 4), GridCell::new(0, 8));
-        let first_result = first_segment.overlaps(&second_segment);
-        let second_result = second_segment.overlaps(&first_segment);
-        assert_eq!(first_result, true);
-        assert_eq!(second_result, true);
+        assert_commutative(
+            first_segment,
+            second_segment,
+            Box::from(LineSegment::overlaps),
+            true,
+        );
     }
 
     #[test]
     fn test_contains_segment_end_touching_no_overlap() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
         let second_segment = LineSegment::new(GridCell::new(0, 1), GridCell::new(0, 2));
-        let first_result = first_segment.overlaps(&second_segment);
-        let second_result = second_segment.overlaps(&first_segment);
-        assert_eq!(first_result, false);
-        assert_eq!(second_result, false);
+        assert_commutative(
+            first_segment,
+            second_segment,
+            Box::from(LineSegment::overlaps),
+            false,
+        );
     }
 
     #[test]
     fn test_contains_segment_smaller_overlap_larger() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 2));
         let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
-        let first_result = first_segment.overlaps(&second_segment);
-        let second_result = second_segment.overlaps(&first_segment);
-        assert_eq!(first_result, false);
-        assert_eq!(second_result, false);
+        assert_commutative(
+            first_segment,
+            second_segment,
+            Box::from(LineSegment::overlaps),
+            true,
+        );
     }
 }
