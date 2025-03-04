@@ -23,7 +23,7 @@ impl LineSegmentTreeNode {
         // If there is a containing node, add to as a child.
         if let Some(parent_node) = children
             .iter_mut()
-            .find(|node| node.line_segment.contains_segment(&child))
+            .find(|node| node.line_segment.overlaps(&child))
         {
             parent_node.add_child(child);
         } else {
@@ -59,7 +59,7 @@ impl LineSegmentTree {
         if let Some(parent_node) = self
             .root_nodes
             .iter_mut()
-            .find(|node| node.line_segment.contains_segment(&line_segment))
+            .find(|node| node.line_segment.overlaps(&line_segment))
         {
             parent_node.add_child(line_segment);
         } else {

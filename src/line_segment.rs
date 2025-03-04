@@ -21,7 +21,7 @@ impl LineSegment {
     }
 
     /// Determines if two LineSegments overlap.
-    pub fn contains_segment(&self, other: &LineSegment) -> bool {
+    pub fn overlaps(&self, other: &LineSegment) -> bool {
         // Determine if both segments are horizontal or vertical
         let self_orientation = self.orientation();
         let other_orientation = other.orientation();
@@ -87,8 +87,8 @@ mod test {
     fn test_contains_segment_far_disjoint() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
         let second_segment = LineSegment::new(GridCell::new(1, 2), GridCell::new(1, 3));
-        let first_result = first_segment.contains_segment(&second_segment);
-        let second_result = second_segment.contains_segment(&first_segment);
+        let first_result = first_segment.overlaps(&second_segment);
+        let second_result = second_segment.overlaps(&first_segment);
         assert_eq!(first_result, false);
         assert_eq!(second_result, false);
     }
@@ -97,8 +97,8 @@ mod test {
     fn test_contains_segment_corner_touching_orthogonal() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
         let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(1, 0));
-        let first_result = first_segment.contains_segment(&second_segment);
-        let second_result = second_segment.contains_segment(&first_segment);
+        let first_result = first_segment.overlaps(&second_segment);
+        let second_result = second_segment.overlaps(&first_segment);
         assert_eq!(first_result, false);
         assert_eq!(second_result, false);
     }
@@ -106,7 +106,7 @@ mod test {
     #[test]
     fn test_contains_segment_direct_overlap() {
         let result = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1))
-            .contains_segment(&LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1)));
+            .overlaps(&LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1)));
         assert_eq!(result, true);
     }
 
@@ -114,8 +114,8 @@ mod test {
     fn test_contains_segment_partial_overlap_inside() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 5));
         let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
-        let first_result = first_segment.contains_segment(&second_segment);
-        let second_result = second_segment.contains_segment(&first_segment);
+        let first_result = first_segment.overlaps(&second_segment);
+        let second_result = second_segment.overlaps(&first_segment);
         assert_eq!(first_result, true);
         assert_eq!(second_result, true);
     }
@@ -124,8 +124,8 @@ mod test {
     fn test_contains_segment_partial_overlap_outside() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 5));
         let second_segment = LineSegment::new(GridCell::new(0, 4), GridCell::new(0, 8));
-        let first_result = first_segment.contains_segment(&second_segment);
-        let second_result = second_segment.contains_segment(&first_segment);
+        let first_result = first_segment.overlaps(&second_segment);
+        let second_result = second_segment.overlaps(&first_segment);
         assert_eq!(first_result, true);
         assert_eq!(second_result, true);
     }
@@ -134,8 +134,8 @@ mod test {
     fn test_contains_segment_end_touching_no_overlap() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
         let second_segment = LineSegment::new(GridCell::new(0, 1), GridCell::new(0, 2));
-        let first_result = first_segment.contains_segment(&second_segment);
-        let second_result = second_segment.contains_segment(&first_segment);
+        let first_result = first_segment.overlaps(&second_segment);
+        let second_result = second_segment.overlaps(&first_segment);
         assert_eq!(first_result, false);
         assert_eq!(second_result, false);
     }
@@ -144,8 +144,8 @@ mod test {
     fn test_contains_segment_smaller_overlap_larger() {
         let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 2));
         let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
-        let first_result = first_segment.contains_segment(&second_segment);
-        let second_result = second_segment.contains_segment(&first_segment);
+        let first_result = first_segment.overlaps(&second_segment);
+        let second_result = second_segment.overlaps(&first_segment);
         assert_eq!(first_result, false);
         assert_eq!(second_result, false);
     }
