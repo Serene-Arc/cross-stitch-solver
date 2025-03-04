@@ -1,6 +1,6 @@
 use crate::grid_cell::GridCell;
 use crate::line_segment::LineSegment;
-use itertools::Itertools;
+use std::mem;
 
 #[derive(Debug, Clone)]
 pub struct LineSegmentTreeNode {
@@ -19,13 +19,24 @@ impl LineSegmentTreeNode {
         Self::insert_segment(&mut self.children, child);
     }
 
+    fn _prioritise_node_lengths(line_segment: LineSegment, parent_node: &mut LineSegmentTreeNode) {
+        if parent_node.line_segment.get_length() >= line_segment.get_length() {
+            parent_node.add_child(line_segment);
+        } else {
+            // If the given line segment is larger than the existing node,
+            // then it needs to be the root of the subtree.
+            let old_root = mem::replace(&mut parent_node.line_segment, line_segment);
+            parent_node.add_child(old_root);
+        }
+    }
+
     fn insert_segment(children: &mut Vec<LineSegmentTreeNode>, child: LineSegment) {
         // If there is a containing node, add to as a child.
         if let Some(parent_node) = children
             .iter_mut()
             .find(|node| node.line_segment.overlaps(&child))
         {
-            parent_node.add_child(child);
+            Self::_prioritise_node_lengths(child, parent_node);
         } else {
             // There is no containing node, so we must find the best place to put the child.
             // It should be in order of size,
@@ -61,7 +72,7 @@ impl LineSegmentTree {
             .iter_mut()
             .find(|node| node.line_segment.overlaps(&line_segment))
         {
-            parent_node.add_child(line_segment);
+            LineSegmentTreeNode::_prioritise_node_lengths(line_segment, parent_node);
         } else {
             let new_node = LineSegmentTreeNode::new(line_segment);
             self.root_nodes.push(new_node);
@@ -74,8 +85,6 @@ pub fn group_lines(lines: Vec<(GridCell, GridCell)>) -> LineSegmentTree {
     for segment in lines
         .into_iter()
         .map(|(start, end)| LineSegment::new(start, end))
-        .sorted_by_key(|s| s.get_length())
-        .rev()
     {
         tree.add_child(segment);
     }
@@ -113,9 +122,9 @@ mod tests {
             (GridCell::new(0, 0), GridCell::new(0, 1)),
             (GridCell::new(0, 0), GridCell::new(0, 2)),
             (GridCell::new(0, 0), GridCell::new(0, 3)),
-            (GridCell::new(2, 0), GridCell::new(0, 3)),
+            (GridCell::new(0, 2), GridCell::new(0, 3)),
             (GridCell::new(0, 0), GridCell::new(1, 0)),
-            (GridCell::new(1, 0), GridCell::new(2, 0)),
+            (GridCell::new(0, 0), GridCell::new(2, 0)),
         ];
         let result = group_lines(segments);
         assert_eq!(result.root_nodes.len(), 2)
@@ -127,10 +136,43 @@ mod tests {
             (GridCell::new(0, 0), GridCell::new(0, 1)),
             (GridCell::new(0, 0), GridCell::new(0, 2)),
             (GridCell::new(0, 0), GridCell::new(0, 3)),
-            (GridCell::new(2, 0), GridCell::new(0, 3)),
+            (GridCell::new(0, 2), GridCell::new(0, 3)),
             (GridCell::new(0, 0), GridCell::new(1, 0)),
         ];
         let result = group_lines(segments);
-        assert_eq!(result.root_nodes.len(), 2)
+        assert_eq!(result.root_nodes.len(), 2);
+        assert_eq!(result.root_nodes[0].line_segment.get_length(), 3);
+        assert_eq!(result.root_nodes[1].line_segment.get_length(), 1);
+        assert_eq!(result.root_nodes[0].children.len(), 2);
+    }
+
+    #[test]
+    fn test_group_lines_tree_two_levels() {
+        let segments = vec![
+            (GridCell::new(0, 0), GridCell::new(0, 2)),
+            (GridCell::new(0, 0), GridCell::new(0, 1)),
+        ];
+        let result = group_lines(segments.clone());
+        assert_eq!(result.root_nodes.len(), 1);
+        assert_eq!(result.root_nodes[0].children.len(), 1);
+        assert_eq!(
+            result.root_nodes[0].children[0].line_segment,
+            segments[1].into()
+        );
+    }
+
+    #[test]
+    fn test_group_lines_tree_two_levels_rearrange() {
+        let segments = vec![
+            (GridCell::new(0, 0), GridCell::new(0, 1)),
+            (GridCell::new(0, 0), GridCell::new(0, 2)),
+        ];
+        let result = group_lines(segments.clone());
+        assert_eq!(result.root_nodes.len(), 1);
+        assert_eq!(result.root_nodes[0].children.len(), 1);
+        assert_eq!(
+            result.root_nodes[0].children[0].line_segment,
+            segments[0].into()
+        );
     }
 }
