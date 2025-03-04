@@ -73,6 +73,12 @@ impl LineSegment {
     }
 }
 
+impl From<(GridCell, GridCell)> for LineSegment {
+    fn from((start, end): (GridCell, GridCell)) -> Self {
+        LineSegment(start, end)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
