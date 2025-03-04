@@ -3,7 +3,11 @@ use std::cmp::{max, min};
 
 /// A struct for working with lines that are orthogonal to a grid i.e. straight between grid points.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
-pub struct LineSegment(GridCell, GridCell);
+pub struct LineSegment {
+    start: GridCell,
+    end: GridCell,
+    pub order: usize,
+}
 
 #[derive(Debug, PartialEq, Eq)]
 enum Axis {
@@ -12,12 +16,12 @@ enum Axis {
 }
 
 impl LineSegment {
-    pub fn new(start: GridCell, end: GridCell) -> Self {
-        Self(start, end)
+    pub fn new(start: GridCell, end: GridCell, order: usize) -> Self {
+        Self { start, end, order }
     }
 
     pub fn get_length(&self) -> usize {
-        self.0.euclidean_distance(&self.1).floor() as usize
+        self.start.euclidean_distance(&self.end).floor() as usize
     }
 
     /// Determines if two LineSegments overlap.
@@ -35,25 +39,29 @@ impl LineSegment {
 
                 if self_dir == Axis::Horizontal {
                     // Check if they are on the same y-coordinate
-                    if self.0.y != other.0.y {
+                    if self.start.y != other.start.y {
                         return false;
                     }
                     // Check if their x ranges overlap
                     let (self_min_x, self_max_x) =
-                        (min(self.0.x, self.1.x), max(self.0.x, self.1.x));
-                    let (other_min_x, other_max_x) =
-                        (min(other.0.x, other.1.x), max(other.0.x, other.1.x));
+                        (min(self.start.x, self.end.x), max(self.start.x, self.end.x));
+                    let (other_min_x, other_max_x) = (
+                        min(other.start.x, other.end.x),
+                        max(other.start.x, other.end.x),
+                    );
                     max(self_min_x, other_min_x) < min(self_max_x, other_max_x)
                 } else {
                     // Check if they are on the same x-coordinate
-                    if self.0.x != other.0.x {
+                    if self.start.x != other.start.x {
                         return false;
                     }
                     // Check if their y ranges overlap
                     let (self_min_y, self_max_y) =
-                        (min(self.0.y, self.1.y), max(self.0.y, self.1.y));
-                    let (other_min_y, other_max_y) =
-                        (min(other.0.y, other.1.y), max(other.0.y, other.1.y));
+                        (min(self.start.y, self.end.y), max(self.start.y, self.end.y));
+                    let (other_min_y, other_max_y) = (
+                        min(other.start.y, other.end.y),
+                        max(other.start.y, other.end.y),
+                    );
                     max(self_min_y, other_min_y) < min(self_max_y, other_max_y)
                 }
             }
@@ -63,9 +71,9 @@ impl LineSegment {
 
     /// Determines the orientation of a line segment.
     fn orientation(&self) -> Option<Axis> {
-        if self.0.y == self.1.y {
+        if self.start.y == self.end.y {
             Some(Axis::Horizontal)
-        } else if self.0.x == self.1.x {
+        } else if self.start.x == self.end.x {
             Some(Axis::Vertical)
         } else {
             None
@@ -75,7 +83,17 @@ impl LineSegment {
 
 impl From<(GridCell, GridCell)> for LineSegment {
     fn from((start, end): (GridCell, GridCell)) -> Self {
-        LineSegment(start, end)
+        LineSegment {
+            start,
+            end,
+            order: 0,
+        }
+    }
+}
+
+impl Into<(GridCell, GridCell)> for LineSegment {
+    fn into(self) -> (GridCell, GridCell) {
+        (self.start, self.end)
     }
 }
 
@@ -90,8 +108,8 @@ mod test {
 
     #[test]
     fn test_contains_segment_far_disjoint() {
-        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
-        let second_segment = LineSegment::new(GridCell::new(1, 2), GridCell::new(1, 3));
+        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1), 0);
+        let second_segment = LineSegment::new(GridCell::new(1, 2), GridCell::new(1, 3), 0);
         assert_commutative(
             first_segment,
             second_segment,
@@ -102,8 +120,8 @@ mod test {
 
     #[test]
     fn test_contains_segment_corner_touching_orthogonal() {
-        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
-        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(1, 0));
+        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1), 0);
+        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(1, 0), 0);
         assert_commutative(
             first_segment,
             second_segment,
@@ -114,8 +132,8 @@ mod test {
 
     #[test]
     fn test_contains_segment_direct_overlap() {
-        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
-        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
+        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1), 0);
+        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1), 0);
         assert_commutative(
             first_segment,
             second_segment,
@@ -126,8 +144,8 @@ mod test {
 
     #[test]
     fn test_contains_segment_partial_overlap_inside() {
-        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 5));
-        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
+        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 5), 0);
+        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1), 0);
         assert_commutative(
             first_segment,
             second_segment,
@@ -138,8 +156,8 @@ mod test {
 
     #[test]
     fn test_contains_segment_partial_overlap_outside() {
-        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 5));
-        let second_segment = LineSegment::new(GridCell::new(0, 4), GridCell::new(0, 8));
+        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 5), 0);
+        let second_segment = LineSegment::new(GridCell::new(0, 4), GridCell::new(0, 8), 0);
         assert_commutative(
             first_segment,
             second_segment,
@@ -150,8 +168,8 @@ mod test {
 
     #[test]
     fn test_contains_segment_end_touching_no_overlap() {
-        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
-        let second_segment = LineSegment::new(GridCell::new(0, 1), GridCell::new(0, 2));
+        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1), 0);
+        let second_segment = LineSegment::new(GridCell::new(0, 1), GridCell::new(0, 2), 0);
         assert_commutative(
             first_segment,
             second_segment,
@@ -162,8 +180,8 @@ mod test {
 
     #[test]
     fn test_contains_segment_smaller_overlap_larger() {
-        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 2));
-        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
+        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 2), 0);
+        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1), 0);
         assert_commutative(
             first_segment,
             second_segment,

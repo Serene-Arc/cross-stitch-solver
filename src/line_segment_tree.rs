@@ -66,6 +66,11 @@ impl LineSegmentTree {
         Self { root_nodes: vec![] }
     }
 
+    pub fn depth_iter(&self) -> LineSegmentTreeIterator<'_> {
+        let stack = self.root_nodes.iter().map(|n| (n, 0)).collect();
+        LineSegmentTreeIterator { stack }
+    }
+
     pub fn add_child(&mut self, line_segment: LineSegment) {
         if let Some(parent_node) = self
             .root_nodes
@@ -84,11 +89,31 @@ pub fn group_lines(lines: Vec<(GridCell, GridCell)>) -> LineSegmentTree {
     let mut tree = LineSegmentTree::new();
     for segment in lines
         .into_iter()
-        .map(|(start, end)| LineSegment::new(start, end))
+        .enumerate()
+        .map(|(i, (start, end))| LineSegment::new(start, end, i))
     {
         tree.add_child(segment);
     }
     tree
+}
+
+pub struct LineSegmentTreeIterator<'a> {
+    stack: Vec<(&'a LineSegmentTreeNode, usize)>,
+}
+
+impl<'a> Iterator for LineSegmentTreeIterator<'a> {
+    type Item = (&'a LineSegment, usize);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some((node, depth)) = self.stack.pop() {
+            for child in node.children.iter().rev() {
+                self.stack.push((child, depth + 1));
+            }
+            Some((&node.line_segment, depth))
+        } else {
+            None
+        }
+    }
 }
 
 #[cfg(test)]
