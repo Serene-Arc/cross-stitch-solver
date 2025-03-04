@@ -139,4 +139,14 @@ mod test {
         assert_eq!(first_result, false);
         assert_eq!(second_result, false);
     }
+
+    #[test]
+    fn test_contains_segment_smaller_overlap_larger() {
+        let first_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 2));
+        let second_segment = LineSegment::new(GridCell::new(0, 0), GridCell::new(0, 1));
+        let first_result = first_segment.contains_segment(&second_segment);
+        let second_result = second_segment.contains_segment(&first_segment);
+        assert_eq!(first_result, false);
+        assert_eq!(second_result, false);
+    }
 }
