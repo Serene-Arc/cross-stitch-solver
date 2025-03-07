@@ -1,5 +1,5 @@
 use crate::grid_cell::GridCell;
-use crate::line_segment::LineSegment;
+use crate::svg_output::line_segment::LineSegment;
 use std::mem;
 
 #[derive(Debug, Clone)]

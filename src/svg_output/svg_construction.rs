@@ -1,7 +1,7 @@
 use crate::grid_cell::GridCell;
-use crate::line_segment::LineSegment;
-use crate::line_segment_tree::group_lines;
 use crate::stitch::HalfStitch;
+use crate::svg_output::line_segment::LineSegment;
+use crate::svg_output::line_segment_tree::group_lines;
 use itertools::Itertools;
 use svg::node::element::{Circle, Definitions, Group, Line, Marker, Mask, Path, Text};
 use svg::{Document, Node};

@@ -1,13 +1,12 @@
 mod grid;
 mod grid_cell;
-mod line_segment;
-mod line_segment_tree;
 mod stitch;
 mod svg_output;
 mod symbolic_sum;
 
 use crate::grid::GridState;
 use crate::stitch::{HalfStitch, StartingStitchCorner};
+use crate::svg_output::svg_construction::create_graphic;
 use grid_cell::GridCell;
 use iced::widget::{button, checkbox, column, container, pick_list, row};
 use iced::{Element, Fill, Task, Theme};
@@ -67,7 +66,7 @@ impl CrossStitchSolver {
                     self.grid_state.bottom_stitch_corner,
                     self.grid_state.top_stitch_corner,
                 );
-                let document = svg_output::create_graphic(&stitches);
+                let document = create_graphic(&stitches);
                 svg::save("stitches.svg", &document)
                     .unwrap_or_else(|_| error!("Failed to write SVG file"));
             }
