@@ -42,15 +42,10 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
 
     let dot_group = draw_grid(max_x, max_y, view_height);
     let (bottom_stitches_group, bottom_stitch_text) =
-        draw_stitches(&bottom_stitches, "blue", 1, view_height);
+        draw_stitches(&bottom_stitches, "blue", view_height);
     let (inter_stitch_group, inter_stitch_text) =
         draw_inter_stitch_movement(&centred_stitches, view_height);
-    let (top_stitches_group, top_stitch_text) = draw_stitches(
-        &top_stitches,
-        "red",
-        1 + bottom_stitches.len() * 2,
-        view_height,
-    );
+    let (top_stitches_group, top_stitch_text) = draw_stitches(&top_stitches, "red", view_height);
 
     let all_lines = bottom_stitches_group
         .iter()
@@ -128,10 +123,8 @@ fn draw_grid(max_x: isize, max_y: isize, view_height: f64) -> Group {
 fn draw_stitches(
     stitches: &[HalfStitch],
     colour: &str,
-    starting_number: usize,
     view_height: f64,
 ) -> (Vec<(usize, Line)>, Group) {
-    let mut number_sequence = std::iter::successors(Some(starting_number), |n| Some(n + 2));
     let mut stitch_lines = Vec::with_capacity(stitches.len());
     let mut text_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
@@ -145,15 +138,14 @@ fn draw_stitches(
         .set("fill", colour)
         .set("stroke", colour);
 
-        // If the starting number is 1, then this is the bottom stitch,
+        // If the order number is odd, then this is the bottom stitch,
         // and we should apply the mask.
-        if starting_number == 1 {
+        if stitch.order % 2 == 1 {
             line = line.set("mask", "url(#intersection-mask)");
         }
-        let i = number_sequence.next().unwrap();
-        stitch_lines.push((i, line));
+        stitch_lines.push((stitch.order, line));
         text_group = text_group.add(add_sequence_number(
-            i,
+            stitch.order,
             colour,
             stitch.start,
             stitch.get_end_location(),
@@ -333,6 +325,7 @@ mod tests {
         let stitches = vec![HalfStitch {
             start: GridCell::new(0, 0),
             stitch_corner: StartingStitchCorner::BottomLeft,
+            order: 0,
         }];
         let result = re_centre_stitches(&stitches);
         assert_eq!(result, stitches)
@@ -343,6 +336,7 @@ mod tests {
         let stitches = vec![HalfStitch {
             start: GridCell::new(5, 0),
             stitch_corner: StartingStitchCorner::BottomLeft,
+            order: 0,
         }];
         let result = re_centre_stitches(&stitches);
         assert_eq!(result, vec![HalfStitch::default()])
@@ -353,6 +347,7 @@ mod tests {
         let stitches = vec![HalfStitch {
             start: GridCell::new(-5, 0),
             stitch_corner: StartingStitchCorner::BottomLeft,
+            order: 0,
         }];
         let result = re_centre_stitches(&stitches);
         assert_eq!(result, vec![HalfStitch::default()])
@@ -363,6 +358,7 @@ mod tests {
         let stitches = vec![HalfStitch {
             start: GridCell::new(0, 5),
             stitch_corner: StartingStitchCorner::BottomLeft,
+            order: 0,
         }];
         let result = re_centre_stitches(&stitches);
         assert_eq!(result, vec![HalfStitch::default()])
@@ -373,6 +369,7 @@ mod tests {
         let stitches = vec![HalfStitch {
             start: GridCell::new(0, -5),
             stitch_corner: StartingStitchCorner::BottomLeft,
+            order: 0,
         }];
         let result = re_centre_stitches(&stitches);
         assert_eq!(result, vec![HalfStitch::default()])
@@ -383,6 +380,7 @@ mod tests {
         let stitches = vec![HalfStitch {
             start: GridCell::new(5, 5),
             stitch_corner: StartingStitchCorner::BottomLeft,
+            order: 0,
         }];
         let result = re_centre_stitches(&stitches);
         assert_eq!(result, vec![HalfStitch::default()])
@@ -393,6 +391,7 @@ mod tests {
         let stitches = vec![HalfStitch {
             start: GridCell::new(-5, -5),
             stitch_corner: StartingStitchCorner::BottomLeft,
+            order: 0,
         }];
         let result = re_centre_stitches(&stitches);
         assert_eq!(result, vec![HalfStitch::default()])
@@ -404,10 +403,12 @@ mod tests {
             HalfStitch {
                 start: GridCell::new(0, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(1, 1),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
         ];
         let result = re_centre_stitches(&stitches);
@@ -420,10 +421,12 @@ mod tests {
             HalfStitch {
                 start: GridCell::new(-1, -1),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(1, 1),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
         ];
         let result = re_centre_stitches(&stitches);
@@ -434,6 +437,7 @@ mod tests {
                 HalfStitch {
                     start: GridCell::new(2, 2),
                     stitch_corner: StartingStitchCorner::BottomLeft,
+                    order: 0,
                 }
             ]
         )
@@ -445,10 +449,12 @@ mod tests {
             HalfStitch {
                 start: GridCell::new(0, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
             },
         ];
         let document = create_graphic(&test_stitches);
@@ -461,26 +467,70 @@ mod tests {
             HalfStitch {
                 start: GridCell::new(0, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(2, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(3, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(2, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
+            },
+        ];
+        let document = create_graphic(&test_stitches);
+        svg::save("stitches.svg", &document).unwrap()
+    }
+
+    #[test]
+    fn test_make_svg_and_write_single_row_completed_stitches() {
+        let test_stitches = vec![
+            HalfStitch {
+                start: GridCell::new(0, 0),
+                stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
+            },
+            HalfStitch {
+                start: GridCell::new(1, 0),
+                stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
+            },
+            HalfStitch {
+                start: GridCell::new(1, 0),
+                stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
+            },
+            HalfStitch {
+                start: GridCell::new(2, 0),
+                stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
+            },
+            HalfStitch {
+                start: GridCell::new(2, 0),
+                stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
+            },
+            HalfStitch {
+                start: GridCell::new(3, 0),
+                stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
             },
         ];
         let document = create_graphic(&test_stitches);
@@ -493,26 +543,32 @@ mod tests {
             HalfStitch {
                 start: GridCell::new(0, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(0, 1),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(0, 2),
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(1, 1),
                 stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
             },
             HalfStitch {
                 start: GridCell::new(1, 2),
                 stitch_corner: StartingStitchCorner::BottomRight,
+                order: 0,
             },
         ];
         let document = create_graphic(&test_stitches);
@@ -524,6 +580,7 @@ mod tests {
         let test_stitch = HalfStitch {
             start: GridCell::new(0, 0),
             stitch_corner: StartingStitchCorner::BottomLeft,
+            order: 0,
         };
         let result = calculate_text_coordinates(
             test_stitch.start,

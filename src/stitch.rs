@@ -60,6 +60,7 @@ pub struct HalfStitch {
     // The start is the cell of the stitch, from the bottom left corner.
     pub start: GridCell,
     pub stitch_corner: StartingStitchCorner,
+    pub order: usize,
 }
 
 impl HalfStitch {
@@ -85,12 +86,13 @@ impl HalfStitch {
     ) -> Vec<HalfStitch> {
         let mut seen_cells = HashMap::new();
         let mut out = Vec::new();
-        for cell in cells {
+        for (i, cell) in cells.enumerate() {
             match seen_cells.contains_key(cell) {
                 false => {
                     out.push(HalfStitch {
                         start: *cell + first_stitch_direction.get_offset_from_bottom_left(),
                         stitch_corner: first_stitch_direction,
+                        order: i,
                     });
                     seen_cells.insert(cell, true);
                 }
@@ -98,8 +100,16 @@ impl HalfStitch {
                     out.push(HalfStitch {
                         start: *cell + second_stitch_direction.get_offset_from_bottom_left(),
                         stitch_corner: second_stitch_direction,
+                        order: i,
                     });
                 }
+            }
+        }
+        for stitch in out.iter_mut() {
+            if stitch.order == 0 {
+                stitch.order = 1;
+            } else {
+                stitch.order += 2;
             }
         }
         out
@@ -177,6 +187,7 @@ mod test {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
             stitch_corner: StartingStitchCorner::BottomLeft,
+            order: 0,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: 1, y: 1 });
@@ -187,6 +198,7 @@ mod test {
         let result = HalfStitch {
             start: GridCell { x: 0, y: 0 },
             stitch_corner: StartingStitchCorner::BottomRight,
+            order: 0,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: -1, y: 1 });
@@ -197,6 +209,7 @@ mod test {
         let result = HalfStitch {
             start: GridCell { x: 1, y: 0 },
             stitch_corner: StartingStitchCorner::BottomRight,
+            order: 0,
         }
         .get_end_location();
         assert_eq!(result, GridCell { x: 0, y: 1 });
@@ -214,6 +227,7 @@ mod test {
             HalfStitch {
                 start: GridCell { x: 0, y: 0 },
                 stitch_corner: StartingStitchCorner::BottomLeft,
+                order: 0
             }
         )
     }
@@ -231,10 +245,12 @@ mod test {
                 HalfStitch {
                     start: GridCell { x: 0, y: 0 },
                     stitch_corner: StartingStitchCorner::BottomLeft,
+                    order: 0
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
                     stitch_corner: StartingStitchCorner::BottomRight,
+                    order: 0
                 },
             ]
         )
@@ -258,14 +274,17 @@ mod test {
                 HalfStitch {
                     start: GridCell { x: 0, y: 0 },
                     stitch_corner: StartingStitchCorner::BottomLeft,
+                    order: 0
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
                     stitch_corner: StartingStitchCorner::BottomRight,
+                    order: 0
                 },
                 HalfStitch {
                     start: GridCell { x: 1, y: 0 },
                     stitch_corner: StartingStitchCorner::BottomLeft,
+                    order: 0
                 },
             ]
         )
