@@ -128,7 +128,7 @@ fn draw_stitches(
     let mut stitch_lines = Vec::with_capacity(stitches.len());
     let mut text_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
-        let mut line = _draw_line(
+        let mut line = draw_line(
             view_height,
             stitch.start,
             stitch.get_end_location(),
@@ -156,7 +156,7 @@ fn draw_stitches(
     (stitch_lines, text_group)
 }
 
-fn _draw_line(
+fn draw_line(
     view_height: f64,
     first_point: GridCell,
     second_point: GridCell,
@@ -268,7 +268,7 @@ fn draw_inter_stitch_movement(
         } else {
             (FONT_SIZE as f64 * number as f64, offset)
         };
-        let path = _draw_line(view_height, start, end, line_offset)
+        let path = draw_line(view_height, start, end, line_offset)
             .set("stroke-dasharray", "10,10")
             .set("marker-end", format!("url(#arrow-{})", "green"))
             .set("fill", "green")
