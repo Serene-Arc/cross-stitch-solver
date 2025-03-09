@@ -41,11 +41,16 @@ pub fn create_graphic(stitches: &[HalfStitch]) -> Document {
     document = document.add(defs);
 
     let dot_group = draw_grid(max_x, max_y, view_height);
-    let (bottom_stitches_group, bottom_stitch_text) =
+    let (mut bottom_stitches_group, bottom_stitch_text) =
         draw_stitches(&bottom_stitches, "blue", view_height);
     let (inter_stitch_group, inter_stitch_text) =
         draw_inter_stitch_movement(&centred_stitches, view_height);
     let (top_stitches_group, top_stitch_text) = draw_stitches(&top_stitches, "red", view_height);
+
+    // Add the intersection mask for the bottom stitches.
+    for (_, line) in bottom_stitches_group.iter_mut() {
+        *line = line.clone().set("mask", "url(#intersection-mask)");
+    }
 
     let all_lines = bottom_stitches_group
         .iter()
@@ -138,11 +143,6 @@ fn draw_stitches(
         .set("fill", colour)
         .set("stroke", colour);
 
-        // If the order number is odd, then this is the bottom stitch,
-        // and we should apply the mask.
-        if stitch.order % 2 == 1 {
-            line = line.set("mask", "url(#intersection-mask)");
-        }
         stitch_lines.push((stitch.order, line));
         text_group = text_group.add(add_sequence_number(
             stitch.order,
