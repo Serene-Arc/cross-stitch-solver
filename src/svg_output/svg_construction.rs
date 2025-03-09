@@ -133,7 +133,7 @@ fn draw_stitches(
     let mut stitch_lines = Vec::with_capacity(stitches.len());
     let mut text_group = Group::new().set("fill", colour).set("stroke", colour);
     for stitch in stitches {
-        let mut line = draw_line(
+        let line = draw_line(
             view_height,
             stitch.start,
             stitch.get_end_location(),
