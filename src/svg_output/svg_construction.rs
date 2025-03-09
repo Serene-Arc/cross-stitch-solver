@@ -449,12 +449,12 @@ mod tests {
             HalfStitch {
                 start: GridCell::new(0, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 1,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 2,
             },
         ];
         let document = create_graphic(&test_stitches);
@@ -467,32 +467,32 @@ mod tests {
             HalfStitch {
                 start: GridCell::new(0, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 1,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 3,
             },
             HalfStitch {
                 start: GridCell::new(2, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 5,
             },
             HalfStitch {
                 start: GridCell::new(3, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 7,
             },
             HalfStitch {
                 start: GridCell::new(2, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 9,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 11,
             },
         ];
         let document = create_graphic(&test_stitches);
@@ -505,32 +505,32 @@ mod tests {
             HalfStitch {
                 start: GridCell::new(0, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 1,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 3,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 5,
             },
             HalfStitch {
                 start: GridCell::new(2, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 7,
             },
             HalfStitch {
                 start: GridCell::new(2, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 9,
             },
             HalfStitch {
                 start: GridCell::new(3, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 11,
             },
         ];
         let document = create_graphic(&test_stitches);
@@ -543,32 +543,32 @@ mod tests {
             HalfStitch {
                 start: GridCell::new(0, 0),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 1,
             },
             HalfStitch {
                 start: GridCell::new(0, 1),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 3,
             },
             HalfStitch {
                 start: GridCell::new(0, 2),
                 stitch_corner: StartingStitchCorner::BottomLeft,
-                order: 0,
+                order: 5,
             },
             HalfStitch {
                 start: GridCell::new(1, 0),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 7,
             },
             HalfStitch {
                 start: GridCell::new(1, 1),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 9,
             },
             HalfStitch {
                 start: GridCell::new(1, 2),
                 stitch_corner: StartingStitchCorner::BottomRight,
-                order: 0,
+                order: 11,
             },
         ];
         let document = create_graphic(&test_stitches);
